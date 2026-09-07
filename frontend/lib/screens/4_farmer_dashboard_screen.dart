@@ -246,11 +246,6 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                   Expanded(
                     child: _buildQuickActionCard(
                       title: AppTranslations.tr(lang, "voice_log", "Voice Log"),
-                      subtitle: AppTranslations.tr(
-                        lang,
-                        "voice_log_action_sub",
-                        "Speak & record\nyour activity",
-                      ),
                       icon: Icons.mic_rounded,
                       onTap: () => Navigator.pushNamed(context, '/voice_log'),
                     ),
@@ -262,11 +257,6 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                         lang,
                         "crop_camera_title",
                         "Crop Camera",
-                      ),
-                      subtitle: AppTranslations.tr(
-                        lang,
-                        "crop_camera_action_sub",
-                        "Check crop\nhealth with AI",
                       ),
                       icon: Icons.camera_alt_rounded,
                       onTap: () => Navigator.pushNamed(context, '/crop_camera'),
@@ -284,11 +274,6 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                         "scan_bottle_title",
                         "Scan Bottle",
                       ),
-                      subtitle: AppTranslations.tr(
-                        lang,
-                        "scan_bottle_action_sub",
-                        "Scan & verify\nproduct",
-                      ),
                       icon: Icons.qr_code_scanner_rounded,
                       onTap: () =>
                           Navigator.pushNamed(context, '/scan_product'),
@@ -301,11 +286,6 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                         lang,
                         "new_spray_title",
                         "New Spray Log",
-                      ),
-                      subtitle: AppTranslations.tr(
-                        lang,
-                        "new_spray_action_sub",
-                        "Record new\nspray activity",
                       ),
                       icon: Icons.science_rounded,
                       onTap: () =>
@@ -615,6 +595,7 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                         const SizedBox(height: 6),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             const Text(
                               "28.5°C",
@@ -648,18 +629,18 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 1),
-                                Text(
-                                  AppTranslations.tr(
-                                    lang,
-                                    "calm_ideal_spray",
-                                    "Calm winds and\nideal for spraying",
-                                  ),
-                                  style: const TextStyle(
-                                    color: Color(0xFFD1FAE5),
-                                    fontSize: 10.5,
-                                    height: 1.2,
-                                  ),
-                                ),
+                                // Text(
+                                //   AppTranslations.tr(
+                                //     lang,
+                                //     "calm_ideal_spray",
+                                //     "Calm winds and\nideal for spraying",
+                                //   ),
+                                //   style: const TextStyle(
+                                //     color: Color(0xFFD1FAE5),
+                                //     fontSize: 10.5,
+                                //     height: 1.2,
+                                //   ),
+                                // ),
                               ],
                             ),
                           ],
@@ -742,7 +723,6 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
 
   Widget _buildQuickActionCard({
     required String title,
-    required String subtitle,
     required IconData icon,
     required VoidCallback onTap,
   }) {
@@ -756,13 +736,25 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            color: Color.fromARGB(255, 245, 246, 245),
+            boxShadow: [
+              BoxShadow(
+                color: const Color.fromARGB(255, 6, 108, 40).withOpacity(0.09),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+                spreadRadius: 1,
+              ),
+            ],
+            border: Border.all(
+              color: const Color.fromARGB(255, 251, 251, 251),
+              width: 1.5,
+            ),
           ),
           child: Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 50,
+                height: 50,
                 decoration: const BoxDecoration(
                   color: Color(0xFFECFDF5),
                   shape: BoxShape.circle,
@@ -786,16 +778,6 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        fontSize: 10.5,
-                        color: Color(0xFF64748B),
-                        height: 1.2,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
                   ],
                 ),
               ),
