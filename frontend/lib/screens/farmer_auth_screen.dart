@@ -699,13 +699,16 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
   String _getButtonLabel(String lang) {
     switch (lang) {
       case 'mr':
-        return "माझ्या शेतात प्रवेश करा";
+        return "लॉगिन करा";
+
       case 'hi':
-        return "मेरे खेत में प्रवेश करें";
+        return "लॉगिन करें";
+
       case 'pa':
-        return "ਮੇਰੇ ਖੇਤ ਵਿੱਚ ਜਾਓ";
+        return "ਲੌਗਇਨ ਕਰੋ";
+
       default:
-        return "Enter My Farm";
+        return "Login";
     }
   }
 }
