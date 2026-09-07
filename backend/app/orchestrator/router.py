@@ -24,7 +24,6 @@ class OrchestratorRouter:
         """
         raw_text = (request.input or "").strip().lower()
         has_images = len(request.images) > 0
-        crop_hint = (request.crop_hint or "").lower()
 
         # 1. Direct explicit override if provided in metadata
         if request.metadata and "intent" in request.metadata:
@@ -38,7 +37,7 @@ class OrchestratorRouter:
             "compare", "efficacy", "performance", "how did", "how bio", "vs", "versus",
             "stat", "anova", "yield impact", "result of", "तुलना", "कामगिरी", "प्रभाव"
         ]
-        if any(k in raw_text for k in analytics_keywords) and not ("sprayed" in raw_text or "applied" in raw_text):
+        if any(k in raw_text for k in analytics_keywords) and not ("sprayed" in raw_text or "applied" in raw_text or "फवारले" in raw_text or "छिड़का" in raw_text):
             return IntentType.ANALYZE_PRODUCT
 
         # 3. Report Generation Intent
@@ -48,7 +47,7 @@ class OrchestratorRouter:
 
         # 4. Field Status / Weather Check Intent
         status_keywords = ["weather today", "can i spray", "wind speed", "delta-t", "spray window", "हवामान", "मौसम", "ਛਿੜਕਾਅ"]
-        if any(k in raw_text for k in status_keywords) and not ("sprayed" in raw_text or "i have sprayed" in raw_text or "फवारले" in raw_text):
+        if any(k in raw_text for k in status_keywords) and not ("sprayed" in raw_text or "i have sprayed" in raw_text or "फवारले" in raw_text or "छिड़का" in raw_text):
             return IntentType.CHECK_FIELD_STATUS
 
         # 5. History / Past Records
@@ -58,7 +57,7 @@ class OrchestratorRouter:
 
         # 6. Follow-up Observation (Post-treatment observation)
         obs_keywords = ["observed", "observation", "leaf recovery", "yellowing reduced", "whitefly dead", "तपासणी", "निरीक्षण", "कीड कमी"]
-        if any(k in raw_text for k in obs_keywords) and not ("sprayed" in raw_text or "f फवारले" in raw_text):
+        if any(k in raw_text for k in obs_keywords) and not ("sprayed" in raw_text or "फवारले" in raw_text or "छिड़का" in raw_text):
             return IntentType.ADD_OBSERVATION
 
         # 7. Image-only upload without text
@@ -66,7 +65,7 @@ class OrchestratorRouter:
             return IntentType.UPLOAD_EVIDENCE
 
         # 8. Update / Correction of existing record
-        if request.record_id and ("correct" in raw_text or "update" in raw_text or "change" in raw_text):
+        if request.record_id and ("correct" in raw_text or "update" in raw_text or "change" in raw_text or "बदल" in raw_text):
             return IntentType.UPDATE_FIELD_RECORD
 
         # 9. Default: Primary Field Application Recording (Voice / Text log)
@@ -87,7 +86,7 @@ class OrchestratorRouter:
                 parallel.append("NLP")
             if has_images:
                 parallel.append("VISION")
-            # Weather can always be fetched in parallel to provide microclimate grounding
+            # Weather is ingested in parallel for microclimate grounding
             parallel.append("WEATHER")
 
             # Sequential: Validation -> Efficacy -> Report
@@ -99,7 +98,7 @@ class OrchestratorRouter:
                 required_agents=required,
                 parallel_steps=parallel,
                 sequential_steps=sequential,
-                rationale="Ingests NLP voice transcript, image evidence, and weather telemetry concurrently, then validates and evaluates efficacy sequentially."
+                rationale="Ingests NLP voice transcript, image evidence, and weather telemetry concurrently in parallel, then sequentially validates evidence and computes efficacy."
             )
 
         elif intent == IntentType.ANALYZE_PRODUCT:
@@ -155,7 +154,7 @@ class OrchestratorRouter:
                 rationale="Appends post-application vitality observation and recalculates canopy recovery ROI."
             )
 
-        else: # Fallback / UPDATE_FIELD_RECORD / VIEW_HISTORY
+        else:  # Fallback / UPDATE_FIELD_RECORD / VIEW_HISTORY
             parallel = ["NLP"] if has_text_or_audio else []
             sequential = ["VALIDATION", "REPORT"]
             return ExecutionPlan(

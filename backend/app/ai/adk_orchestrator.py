@@ -127,6 +127,39 @@ def compute_recovery_efficacy_tool(farm_id: str, crop: str, product_applied: str
     }
 
 
+def analyze_crop_vision_tool(crop_type: str = "Tomato", image_base64: str = None) -> Dict[str, Any]:
+    """ADK Tool: Performs computer vision crop diagnosis and product bottle label verification."""
+    from backend.app.ai.vision_agent import VisionAgent
+    from backend.app.models.schemas import VisionAnalysisRequest
+
+    agent = VisionAgent()
+    req = VisionAnalysisRequest(image_base64=image_base64, crop_type=crop_type)
+    res = agent.analyze_crop_image(req)
+    return {
+        "status": "SUCCESS",
+        "agent": "PramaanVisionAgent",
+        "framework": "Google ADK",
+        "vision_analysis": res.model_dump(),
+    }
+
+
+def generate_compliance_report_tool(farm_id: str = "farm-102", crop: str = "Tomato") -> Dict[str, Any]:
+    """ADK Tool: Generates multi-lingual persona-tailored compliance & evidence audit report."""
+    from backend.app.ai.report_agent import report_agent
+    from backend.app.models.schemas import AuditReportRequest
+
+    req = AuditReportRequest(farm_id=farm_id, crop=crop)
+    res = report_agent.generate_audit_report(req)
+    return {
+        "status": "SUCCESS",
+        "agent": "PramaanReportAgent",
+        "framework": "Google ADK",
+        "report_id": res.report_id,
+        "compliance_score_percent": res.compliance_score_percent,
+        "pdf_download_url": res.pdf_download_url,
+    }
+
+
 # -------------------------------------------------------------
 # 2. Google ADK Agent Definitions (google.adk.Agent)
 # -------------------------------------------------------------
@@ -148,49 +181,16 @@ adk_validation_agent = Agent(
 )
 
 # Multilingual Voice NLU Agent
-from google.adk.agents import Agent
-
-
 adk_voice_agent = Agent(
     name="PramaanVoiceAgent",
-
     model="gemini-3.7-flash",
-
-    description=(
-        "Evidence-preserving agricultural voice interpretation "
-        "agent for PRAMAAN."
-    ),
-
+    description="Evidence-preserving agricultural voice interpretation agent for PRAMAAN.",
     instruction="""
 You are the PRAMAAN Voice Evidence Agent.
-
-Your responsibility is to interpret farmer speech-to-text
-and return structured agricultural evidence.
-
-You MUST:
-
-1. Preserve the farmer's original meaning.
-2. Never invent missing agricultural information.
-3. Never infer a pesticide from a crop.
-4. Never infer dosage from a product.
-5. Never infer a pest from a crop.
-6. Never invent plot names.
-7. Distinguish extraction from verification.
-8. Use the voice parsing tool for transcript extraction.
-9. Preserve uncertainty.
-10. Ask for clarification when an important field is ambiguous.
-
-The Voice Agent extracts claims.
-
-It does NOT verify whether the claim is true.
-
-Verification is performed downstream by PRAMAAN's
-Validation Agent.
+Your responsibility is to interpret farmer speech-to-text and return structured agricultural evidence.
+Preserve the farmer's original meaning and use voice parsing tools for transcript extraction.
 """,
-
-    tools=[
-        parse_multilingual_voice_tool
-    ],
+    tools=[parse_multilingual_voice_tool],
 )
 
 # Canopy Efficacy & Yield ROI Agent
@@ -201,28 +201,48 @@ adk_efficacy_agent = Agent(
     tools=[compute_recovery_efficacy_tool],
 )
 
+# Computer Vision & Pathology Agent
+adk_vision_agent = Agent(
+    name="PramaanVisionAgent",
+    description="Autonomous Google ADK agent analyzing crop images, pathology symptoms, and chemical label OCR.",
+    instruction="Analyze field crop images for pest damage, foliar health, and bottle label verification.",
+    tools=[analyze_crop_vision_tool],
+)
+
+# Evidence Audit & Reporting Agent
+adk_report_agent = Agent(
+    name="PramaanReportAgent",
+    description="Autonomous Google ADK agent compiling verifiable multi-lingual compliance reports and persona views.",
+    instruction="Generate structured evidence audit reports for farmers, field agents, and regulatory buyers.",
+    tools=[generate_compliance_report_tool],
+)
+
 # -------------------------------------------------------------
 # 3. Google ADK Master Multi-Agent Orchestrator (google.adk.Agent)
 # -------------------------------------------------------------
 
 pramaan_adk_master = Agent(
     name="PramaanMasterOrchestrator",
-    description="Master Google ADK Orchestrator coordinating specialized sub-agents for Punjab farmers and export buyers.",
+    description="Master Google ADK Orchestrator coordinating all 6 specialized sub-agents for farmers, field agents, and export buyers.",
     instruction=(
         "You are the master agronomic intelligence orchestrator for Pramaan. Coordinate between weather, "
-        "evidence validation, voice processing, and efficacy agents to provide grounded, tamper-proof agricultural intelligence."
+        "evidence validation, voice processing, computer vision, efficacy analytics, and reporting agents."
     ),
     sub_agents=[
         adk_weather_agent,
         adk_validation_agent,
         adk_voice_agent,
         adk_efficacy_agent,
+        adk_vision_agent,
+        adk_report_agent,
     ],
     tools=[
         fetch_live_weather_tool,
         verify_evidence_5layer_tool,
         parse_multilingual_voice_tool,
         compute_recovery_efficacy_tool,
+        analyze_crop_vision_tool,
+        generate_compliance_report_tool,
     ],
 )
 

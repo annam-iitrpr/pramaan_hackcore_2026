@@ -1,5 +1,6 @@
 """
 PRAMAAN Orchestrator Module.
+Central brain and coordinator of the PRAMAAN multi-agent architecture.
 """
 
 from backend.app.orchestrator.state import (
@@ -9,6 +10,7 @@ from backend.app.orchestrator.state import (
     UserRole,
     AgentResult,
     ExecutionPlan,
+    WorkflowContext,
     FieldEvidenceState,
     OrchestratorRequest,
     OrchestratorResponse,
@@ -25,6 +27,7 @@ __all__ = [
     "UserRole",
     "AgentResult",
     "ExecutionPlan",
+    "WorkflowContext",
     "FieldEvidenceState",
     "OrchestratorRequest",
     "OrchestratorResponse",

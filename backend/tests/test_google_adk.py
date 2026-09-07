@@ -11,11 +11,15 @@ from backend.app.ai.adk_orchestrator import (
     adk_validation_agent,
     adk_voice_agent,
     adk_efficacy_agent,
+    adk_vision_agent,
+    adk_report_agent,
     get_google_adk_system_info,
     fetch_live_weather_tool,
     verify_evidence_5layer_tool,
     parse_multilingual_voice_tool,
     compute_recovery_efficacy_tool,
+    analyze_crop_vision_tool,
+    generate_compliance_report_tool,
 )
 
 
@@ -29,16 +33,18 @@ class TestGoogleADKIntegration(unittest.TestCase):
         print(f"\n[PROOF 1] Google ADK Version: {adk.__version__}")
 
     def test_adk_master_and_subagents_hierarchy(self):
-        """Proof 2: Google ADK Multi-Agent hierarchy is properly structured."""
+        """Proof 2: Google ADK Multi-Agent hierarchy is properly structured with all 6 agents."""
         info = get_google_adk_system_info()
         self.assertEqual(info["framework"], "Google ADK (Agent Development Kit)")
         self.assertEqual(info["master_agent"], "PramaanMasterOrchestrator")
-        self.assertEqual(info["sub_agents_count"], 4)
+        self.assertEqual(info["sub_agents_count"], 6)
         self.assertIn("PramaanWeatherAgent", info["registered_sub_agents"])
         self.assertIn("PramaanValidationAgent", info["registered_sub_agents"])
         self.assertIn("PramaanVoiceAgent", info["registered_sub_agents"])
         self.assertIn("PramaanEfficacyAgent", info["registered_sub_agents"])
-        print(f"[PROOF 2] Google ADK Registered Sub-Agents: {info['registered_sub_agents']}")
+        self.assertIn("PramaanVisionAgent", info["registered_sub_agents"])
+        self.assertIn("PramaanReportAgent", info["registered_sub_agents"])
+        print(f"[PROOF 2] Google ADK Registered Sub-Agents (All 6): {info['registered_sub_agents']}")
 
     def test_adk_weather_tool_execution(self):
         """Proof 3: Google ADK Tool execution for real-time Punjab weather & Delta-T."""
@@ -72,6 +78,18 @@ class TestGoogleADKIntegration(unittest.TestCase):
         entities = result["parsed_entities"]
         self.assertEqual(entities["action_type"], "SPRAY")
         print(f"[PROOF 5] ADK Multilingual Voice Tool Extracted: Product='{entities['product_mentioned']}', Dose='{entities['dosage']}'")
+
+    def test_adk_vision_and_report_tools(self):
+        """Proof 6: Google ADK Vision & Report Tools execution."""
+        vision_res = analyze_crop_vision_tool(crop_type="Tomato")
+        self.assertEqual(vision_res["status"], "SUCCESS")
+        self.assertEqual(vision_res["agent"], "PramaanVisionAgent")
+
+        report_res = generate_compliance_report_tool(farm_id="farm-102", crop="Wheat")
+        self.assertEqual(report_res["status"], "SUCCESS")
+        self.assertEqual(report_res["agent"], "PramaanReportAgent")
+        self.assertIn("report_id", report_res)
+        print("[PROOF 6] ADK Vision & Report Tools executed successfully.")
 
 
 if __name__ == "__main__":

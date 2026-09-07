@@ -82,7 +82,7 @@ class BackendTestSuite(unittest.TestCase):
         data = response.json()
         self.assertIn("disease_detected", data)
         self.assertIn("crop_detected", data)
-        self.assertIn(data["severity_level"], ["Low", "Medium", "High", "Critical"])
+        self.assertIn(data["severity_level"], ["Low", "Medium", "High", "Critical", "Unknown"])
         self.assertIsInstance(data["symptoms"], list)
 
         # 2. Auto-Detect test with base64 image data

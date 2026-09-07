@@ -114,10 +114,10 @@ class OrchestratorRequest(BaseModel):
     user_id: str = "F102"
     role: str = "farmer"
     language: str = "en"
-    input_type: str = "voice" # voice, text, image, mixed
-    input: Optional[str] = None # text message or voice transcript
-    images: List[str] = Field(default_factory=list) # paths or base64 or urls
-    location: Optional[Dict[str, Any]] = None # {latitude, longitude, village, state}
+    input_type: str = "voice"  # voice, text, image, mixed
+    input: Optional[str] = None  # text message or voice transcript
+    images: List[str] = Field(default_factory=list)  # paths or base64 or urls
+    location: Optional[Dict[str, Any]] = None  # {latitude, longitude, village, state}
     timestamp: Optional[str] = None
     record_id: Optional[str] = None
     crop_hint: Optional[str] = None
