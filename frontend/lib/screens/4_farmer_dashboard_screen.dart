@@ -264,7 +264,7 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -285,7 +285,7 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                       title: AppTranslations.tr(
                         lang,
                         "new_spray_title",
-                        "New Spray Log",
+                        "Spray Log",
                       ),
                       icon: Icons.science_rounded,
                       onTap: () =>
@@ -726,71 +726,142 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
     required IconData icon,
     required VoidCallback onTap,
   }) {
+    // Split title into two lines
+    String firstLine = title;
+    String secondLine = '';
+
+    if (title == "Voice Log") {
+      firstLine = "Voice";
+      secondLine = "Log";
+    } else if (title == "Crop Camera") {
+      firstLine = "Crop";
+      secondLine = "Camera";
+    } else if (title == "Scan Bottle") {
+      firstLine = "Scan";
+      secondLine = "Bottle";
+    } else if (title == "New Spray Log" || title == "Spray Log") {
+      firstLine = "Spray";
+      secondLine = "Log";
+    }
+
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(12),
+          height: 82,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            color: Color.fromARGB(255, 245, 246, 245),
+            color: const Color(0xFFF8FAF9),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE8EFEB), width: 1),
             boxShadow: [
               BoxShadow(
-                color: const Color.fromARGB(255, 6, 108, 40).withOpacity(0.09),
+                color: const Color(0xFF047857).withOpacity(0.06),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
-                spreadRadius: 1,
               ),
             ],
-            border: Border.all(
-              color: const Color.fromARGB(255, 251, 251, 251),
-              width: 1.5,
-            ),
           ),
           child: Row(
             children: [
+              // Icon
               Container(
-                width: 50,
-                height: 50,
+                width: 44,
+                height: 44,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFECFDF5),
+                  color: Color(0xFFE8F8F1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: const Color(0xFF047857), size: 22),
+                child: Icon(icon, color: const Color(0xFF047857), size: 21),
               ),
-              const SizedBox(width: 8),
+
+              const SizedBox(width: 10),
+
+              // Two-line title
               Expanded(
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
-                      ),
+                      firstLine,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF0F172A),
+                      ),
                     ),
-                    const SizedBox(height: 2),
+                    Text(
+                      secondLine,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
                   ],
                 ),
               ),
+
+              // Arrow
               const Icon(
                 Icons.chevron_right_rounded,
                 color: Color(0xFF94A3B8),
-                size: 18,
+                size: 20,
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  String _formatActivityDateTime(String timestamp) {
+    if (timestamp.isEmpty) {
+      return "Today";
+    }
+
+    final parsedDate = DateTime.tryParse(timestamp);
+
+    if (parsedDate == null) {
+      return timestamp;
+    }
+
+    final localDate = parsedDate.toLocal();
+
+    final dateText = MaterialLocalizations.of(
+      context,
+    ).formatMediumDate(localDate);
+
+    final timeText = MaterialLocalizations.of(context).formatTimeOfDay(
+      TimeOfDay.fromDateTime(localDate),
+      alwaysUse24HourFormat: false,
+    );
+
+    return "$dateText • $timeText";
+  }
+
+  String _getActivityTitle(String evidenceType) {
+    switch (evidenceType) {
+      case 'VOICE_RECORDING':
+      case 'OBSERVATION':
+        return "Voice Log";
+      case 'CROP_IMAGE':
+        return "Crop Photo";
+      case 'PRODUCT_SCAN':
+        return "Product Scan";
+      case 'APPLICATION_LOG':
+        return "Spray Log";
+      default:
+        return "Activity";
+    }
   }
 
   Widget _buildRecentActivitiesList(EvidenceProvider evProv, String lang) {
@@ -877,9 +948,11 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
           return Column(
             children: [
               _buildActivityItem(
-                title: item.title,
-                subtitle: item.description,
-                time: item.timestamp.isNotEmpty ? item.timestamp : "Today",
+                title: _getActivityTitle(item.evidenceType),
+                subtitle: item.description.isNotEmpty
+                    ? item.description
+                    : "Activity recorded",
+                time: _formatActivityDateTime(item.timestamp),
                 icon: itemIcon,
                 onTap: () => Navigator.pushNamed(
                   context,
@@ -912,56 +985,78 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // Activity icon
             Container(
-              width: 36,
-              height: 36,
+              width: 40,
+              height: 40,
               decoration: const BoxDecoration(
                 color: Color(0xFFECFDF5),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: const Color(0xFF047857), size: 18),
+              child: Icon(icon, color: const Color(0xFF047857), size: 19),
             ),
-            const SizedBox(width: 10),
+
+            const SizedBox(width: 11),
+
+            // Activity information
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Activity title
                   Text(
                     title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 13.5,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF0F172A),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 1),
+
+                  const SizedBox(height: 3),
+
+                  // Activity description
                   Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Color(0xFF64748B),
-                    ),
+                    subtitle.isNotEmpty ? subtitle : "Activity recorded",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: Color(0xFF64748B),
+                      height: 1.25,
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  // Human-readable date and time
+                  Text(
+                    time,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 10.5,
+                      color: Color(0xFF94A3B8),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
             ),
+
             const SizedBox(width: 8),
-            Text(
-              time,
-              style: const TextStyle(fontSize: 10.5, color: Color(0xFF94A3B8)),
-            ),
-            const SizedBox(width: 6),
+
+            // Completed status
             const Icon(
               Icons.check_circle_rounded,
               color: Color(0xFF047857),
-              size: 18,
+              size: 19,
             ),
           ],
         ),

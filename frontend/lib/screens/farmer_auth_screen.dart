@@ -44,7 +44,13 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
     if (name.isEmpty || phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppTranslations.tr(lang, "enter_name_phone_error", "Please enter your name & mobile number")),
+          content: Text(
+            AppTranslations.tr(
+              lang,
+              "enter_name_phone_error",
+              "Please enter your name & mobile number",
+            ),
+          ),
           backgroundColor: AppColors.flaggedRed,
         ),
       );
@@ -54,7 +60,13 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
     if (phone.length < 10) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppTranslations.tr(lang, "enter_valid_phone_error", "Please enter valid 10-digit mobile number")),
+          content: Text(
+            AppTranslations.tr(
+              lang,
+              "enter_valid_phone_error",
+              "Please enter valid 10-digit mobile number",
+            ),
+          ),
           backgroundColor: AppColors.flaggedRed,
         ),
       );
@@ -63,9 +75,15 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
 
     setState(() => _isLoading = true);
 
-    final finalVillage = _villageController.text.trim().isNotEmpty ? _villageController.text.trim() : "Nashik";
-    final finalState = _stateController.text.trim().isNotEmpty ? _stateController.text.trim() : "Maharashtra";
-    final finalCrop = _cropController.text.trim().isNotEmpty ? _cropController.text.trim() : "Cotton";
+    final finalVillage = _villageController.text.trim().isNotEmpty
+        ? _villageController.text.trim()
+        : "Nashik";
+    final finalState = _stateController.text.trim().isNotEmpty
+        ? _stateController.text.trim()
+        : "Maharashtra";
+    final finalCrop = _cropController.text.trim().isNotEmpty
+        ? _cropController.text.trim()
+        : "Cotton";
     final finalAcres = double.tryParse(_acresController.text.trim()) ?? 10.0;
 
     final evProv = Provider.of<EvidenceProvider>(context, listen: false);
@@ -85,7 +103,9 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
       debugPrint("[Farmer Auth] Google Sheets result: $res");
 
       // Check if server returned NAME_MISMATCH error
-      if (res['status'] == 'error' && (res['error_type'] == 'NAME_MISMATCH' || res['registered_name'] != null)) {
+      if (res['status'] == 'error' &&
+          (res['error_type'] == 'NAME_MISMATCH' ||
+              res['registered_name'] != null)) {
         if (mounted) {
           setState(() => _isLoading = false);
           final registeredName = res['registered_name']?.toString() ?? "";
@@ -148,7 +168,11 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
 
     if (mounted) {
       setState(() => _isLoading = false);
-      final welcomeTemplate = AppTranslations.tr(lang, "login_welcome_msg", "Welcome {name}! Logged in successfully.");
+      final welcomeTemplate = AppTranslations.tr(
+        lang,
+        "login_welcome_msg",
+        "Welcome {name}! Logged in successfully.",
+      );
       final welcomeText = welcomeTemplate.replaceAll("{name}", auth.userName);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -161,12 +185,29 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
     }
   }
 
-  void _showNameMismatchDialog(String registeredName, String phone, String lang) {
-    final title = AppTranslations.tr(lang, "name_mismatch_title", "Name Mismatch");
-    final desc = AppTranslations.tr(lang, "name_mismatch_desc", "Mobile number +91 {phone} is already registered under:").replaceAll("{phone}", phone);
-    final secInfo = AppTranslations.tr(lang, "name_mismatch_sec", "For data security, registered account names cannot be changed.");
+  void _showNameMismatchDialog(
+    String registeredName,
+    String phone,
+    String lang,
+  ) {
+    final title = AppTranslations.tr(
+      lang,
+      "name_mismatch_title",
+      "Name Mismatch",
+    );
+    final desc = AppTranslations.tr(
+      lang,
+      "name_mismatch_desc",
+      "Mobile number +91 {phone} is already registered under:",
+    ).replaceAll("{phone}", phone);
+    final secInfo = AppTranslations.tr(
+      lang,
+      "name_mismatch_sec",
+      "For data security, registered account names cannot be changed.",
+    );
     final editBtn = AppTranslations.tr(lang, "edit_name", "Edit Name");
-    final useNameBtn = "${AppTranslations.tr(lang, "use_this_name", "Use this name")} ('$registeredName')";
+    final useNameBtn =
+        "${AppTranslations.tr(lang, "use_this_name", "Use this name")} ('$registeredName')";
 
     showDialog(
       context: context,
@@ -181,13 +222,21 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
                 color: const Color(0xFFFEF3C7),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.warning_amber_rounded, color: Color(0xFFD97706), size: 24),
+              child: const Icon(
+                Icons.warning_amber_rounded,
+                color: Color(0xFFD97706),
+                size: 24,
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
               ),
             ),
           ],
@@ -211,12 +260,20 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.verified_user_rounded, color: Color(0xFF166534), size: 20),
+                  const Icon(
+                    Icons.verified_user_rounded,
+                    color: Color(0xFF166534),
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       registeredName,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF065F46)),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF065F46),
+                      ),
                     ),
                   ),
                 ],
@@ -232,13 +289,21 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(editBtn, style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
+            child: Text(
+              editBtn,
+              style: const TextStyle(
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF166534),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             ),
             icon: const Icon(Icons.check_circle_rounded, size: 18),
@@ -300,12 +365,19 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B), size: 24),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: Color(0xFF1E293B),
+                          size: 24,
+                        ),
                         onPressed: () {
                           if (Navigator.canPop(context)) {
                             Navigator.pop(context);
                           } else {
-                            Navigator.pushReplacementNamed(context, '/profile_selection');
+                            Navigator.pushReplacementNamed(
+                              context,
+                              '/profile_selection',
+                            );
                           }
                         },
                       ),
@@ -314,20 +386,29 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(20),
-                          onTap: () => AppTranslations.showLanguageSelectorModal(
-                            context,
-                            auth.selectedLanguage,
-                            (newLang) => auth.setLanguage(newLang),
-                          ),
+                          onTap: () =>
+                              AppTranslations.showLanguageSelectorModal(
+                                context,
+                                auth.selectedLanguage,
+                                (newLang) => auth.setLanguage(newLang),
+                              ),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF0FDF4),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: const Color(0xFF86EFAC), width: 1.2),
+                              border: Border.all(
+                                color: const Color(0xFF86EFAC),
+                                width: 1.2,
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF166534).withValues(alpha: 0.08),
+                                  color: const Color(
+                                    0xFF166534,
+                                  ).withValues(alpha: 0.08),
                                   blurRadius: 6,
                                   offset: const Offset(0, 2),
                                 ),
@@ -336,10 +417,16 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.language_rounded, size: 17, color: Color(0xFF166534)),
+                                const Icon(
+                                  Icons.language_rounded,
+                                  size: 17,
+                                  color: Color(0xFF166534),
+                                ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  _getLanguageDisplayName(auth.selectedLanguage),
+                                  _getLanguageDisplayName(
+                                    auth.selectedLanguage,
+                                  ),
                                   style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
@@ -347,7 +434,11 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 4),
-                                const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF166534)),
+                                const Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  size: 18,
+                                  color: Color(0xFF166534),
+                                ),
                               ],
                             ),
                           ),
@@ -378,41 +469,24 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
                         const SizedBox(height: 22),
 
                         // 2. Title Section
-                        const Text(
-                          "Farmer Login",
+                        Text(
+                          lang == 'en'
+                              ? "Farmer Login"
+                              : AppTranslations.tr(
+                                  lang,
+                                  "farmer_login_title",
+                                  _getLocalizedLoginTitle(lang),
+                                ),
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 27,
+                            fontSize: lang == 'en' ? 27 : 25,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF133E2B),
+                            color: const Color(0xFF133E2B),
                             letterSpacing: -0.4,
                           ),
                         ),
-                        if (lang != 'en') ...[
-                          const SizedBox(height: 3),
-                          Text(
-                            AppTranslations.tr(lang, "farmer_login_title", "Farmer Login"),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF475569),
-                            ),
-                          ),
-                        ],
                         const SizedBox(height: 6),
-                        Text(
-                          lang == 'en'
-                              ? "Enter your name and mobile number to continue"
-                              : AppTranslations.tr(lang, "farmer_login_sub", "Enter your name and mobile number to continue"),
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 13.5,
-                            color: Color(0xFF64748B),
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-
+                        const SizedBox(height: 28),
                         const SizedBox(height: 32),
 
                         // 3. Farmer Name Input Field
@@ -420,7 +494,10 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.2),
+                            border: Border.all(
+                              color: const Color(0xFFCBD5E1),
+                              width: 1.2,
+                            ),
                           ),
                           child: TextField(
                             controller: _nameController,
@@ -438,7 +515,10 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
                                   size: 24,
                                 ),
                               ),
-                              prefixIconConstraints: const BoxConstraints(minWidth: 44, minHeight: 48),
+                              prefixIconConstraints: const BoxConstraints(
+                                minWidth: 44,
+                                minHeight: 48,
+                              ),
                               hintText: _getNameHint(lang),
                               hintStyle: const TextStyle(
                                 fontSize: 13.5,
@@ -446,7 +526,10 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
                                 fontWeight: FontWeight.w400,
                               ),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 16,
+                                horizontal: 12,
+                              ),
                             ),
                           ),
                         ),
@@ -458,7 +541,10 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.2),
+                            border: Border.all(
+                              color: const Color(0xFFCBD5E1),
+                              width: 1.2,
+                            ),
                           ),
                           child: TextField(
                             controller: _phoneController,
@@ -477,7 +563,10 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
                                   size: 24,
                                 ),
                               ),
-                              prefixIconConstraints: const BoxConstraints(minWidth: 44, minHeight: 48),
+                              prefixIconConstraints: const BoxConstraints(
+                                minWidth: 44,
+                                minHeight: 48,
+                              ),
                               hintText: _getPhoneHint(lang),
                               hintStyle: const TextStyle(
                                 fontSize: 13.5,
@@ -485,7 +574,10 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
                                 fontWeight: FontWeight.w400,
                               ),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 16,
+                                horizontal: 12,
+                              ),
                             ),
                           ),
                         ),
@@ -539,34 +631,6 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
 
                         const SizedBox(height: 18),
 
-                        // 6. Connected Status
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF22C55E),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.check_rounded,
-                                size: 13,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              AppTranslations.tr(lang, "connected_sheets", "Connected to Google Sheets"),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF334155),
-                              ),
-                            ),
-                          ],
-                        ),
-
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -580,27 +644,53 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
     );
   }
 
+  String _getLocalizedLoginSubtitle(String lang) {
+    switch (lang) {
+      case 'mr':
+        return "पुढे जाण्यासाठी आपले नाव आणि मोबाईल नंबर टाका";
+      case 'hi':
+        return "जारी रखने के लिए अपना नाम और मोबाइल नंबर दर्ज करें";
+      case 'pa':
+        return "ਜਾਰੀ ਰੱਖਣ ਲਈ ਆਪਣਾ ਨਾਮ ਅਤੇ ਮੋਬਾਈਲ ਨੰਬਰ ਦਰਜ ਕਰੋ";
+      default:
+        return "Enter your name and mobile number to continue";
+    }
+  }
+
   String _getNameHint(String lang) {
     switch (lang) {
       case 'mr':
-        return "Farmer Full Name (शेतकऱ्याचे नाव)";
+        return "शेतकऱ्याचे पूर्ण नाव";
       case 'hi':
-        return "Farmer Full Name (किसान का नाम)";
+        return "किसान का पूरा नाम";
       case 'pa':
-        return "Farmer Full Name (ਕਿਸਾਨ ਦਾ ਨਾਮ)";
+        return "ਕਿਸਾਨ ਦਾ ਪੂਰਾ ਨਾਮ";
       default:
         return "Farmer Full Name";
+    }
+  }
+
+  String _getLocalizedLoginTitle(String lang) {
+    switch (lang) {
+      case 'mr':
+        return "शेतकरी लॉगिन";
+      case 'hi':
+        return "किसान लॉगिन";
+      case 'pa':
+        return "ਕਿਸਾਨ ਲਾਗਇਨ";
+      default:
+        return "Farmer Login";
     }
   }
 
   String _getPhoneHint(String lang) {
     switch (lang) {
       case 'mr':
-        return "Mobile Number (मोबाईल नंबर)";
+        return "मोबाईल नंबर";
       case 'hi':
-        return "Mobile Number (मोबाइल नंबर)";
+        return "मोबाइल नंबर (10 अंक)";
       case 'pa':
-        return "Mobile Number (ਮੋਬਾਈਲ ਨੰਬਰ)";
+        return "ਮੋਬਾਈਲ ਨੰਬਰ (10 ਅੰਕ)";
       default:
         return "Mobile Number (10 digits)";
     }
@@ -609,11 +699,11 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
   String _getButtonLabel(String lang) {
     switch (lang) {
       case 'mr':
-        return "Enter My Farm (प्रवेश करा)";
+        return "माझ्या शेतात प्रवेश करा";
       case 'hi':
-        return "Enter My Farm (प्रवेश करें)";
+        return "मेरे खेत में प्रवेश करें";
       case 'pa':
-        return "Enter My Farm (ਖੇਤ ਵਿੱਚ ਜਾਓ)";
+        return "ਮੇਰੇ ਖੇਤ ਵਿੱਚ ਜਾਓ";
       default:
         return "Enter My Farm";
     }
@@ -767,7 +857,11 @@ class _FarmLandscapeFooter extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Text(
-                    AppTranslations.tr(lang, "sustainable_slogan", "SUSTAINABLE FARMING FOR A BRIGHTER TOMORROW"),
+                    AppTranslations.tr(
+                      lang,
+                      "sustainable_slogan",
+                      "SUSTAINABLE FARMING FOR A BRIGHTER TOMORROW",
+                    ),
                     style: const TextStyle(
                       fontSize: 9.0,
                       fontWeight: FontWeight.w600,
@@ -801,12 +895,16 @@ class _FarmLandscapePainter extends CustomPainter {
     final backPath = Path();
     backPath.moveTo(0, size.height * 0.35);
     backPath.quadraticBezierTo(
-      size.width * 0.3, size.height * 0.1,
-      size.width * 0.65, size.height * 0.3,
+      size.width * 0.3,
+      size.height * 0.1,
+      size.width * 0.65,
+      size.height * 0.3,
     );
     backPath.quadraticBezierTo(
-      size.width * 0.85, size.height * 0.4,
-      size.width, size.height * 0.25,
+      size.width * 0.85,
+      size.height * 0.4,
+      size.width,
+      size.height * 0.25,
     );
     backPath.lineTo(size.width, size.height);
     backPath.lineTo(0, size.height);
@@ -821,12 +919,16 @@ class _FarmLandscapePainter extends CustomPainter {
     final midPath = Path();
     midPath.moveTo(0, size.height * 0.55);
     midPath.quadraticBezierTo(
-      size.width * 0.25, size.height * 0.35,
-      size.width * 0.55, size.height * 0.5,
+      size.width * 0.25,
+      size.height * 0.35,
+      size.width * 0.55,
+      size.height * 0.5,
     );
     midPath.quadraticBezierTo(
-      size.width * 0.8, size.height * 0.6,
-      size.width, size.height * 0.4,
+      size.width * 0.8,
+      size.height * 0.6,
+      size.width,
+      size.height * 0.4,
     );
     midPath.lineTo(size.width, size.height);
     midPath.lineTo(0, size.height);
@@ -841,12 +943,16 @@ class _FarmLandscapePainter extends CustomPainter {
     final frontPath = Path();
     frontPath.moveTo(0, size.height * 0.72);
     frontPath.quadraticBezierTo(
-      size.width * 0.35, size.height * 0.55,
-      size.width * 0.7, size.height * 0.68,
+      size.width * 0.35,
+      size.height * 0.55,
+      size.width * 0.7,
+      size.height * 0.68,
     );
     frontPath.quadraticBezierTo(
-      size.width * 0.9, size.height * 0.75,
-      size.width, size.height * 0.62,
+      size.width * 0.9,
+      size.height * 0.75,
+      size.width,
+      size.height * 0.62,
     );
     frontPath.lineTo(size.width, size.height);
     frontPath.lineTo(0, size.height);
@@ -862,8 +968,10 @@ class _FarmLandscapePainter extends CustomPainter {
     final contourPath = Path();
     contourPath.moveTo(0, size.height * 0.82);
     contourPath.quadraticBezierTo(
-      size.width * 0.4, size.height * 0.7,
-      size.width * 0.8, size.height * 0.8,
+      size.width * 0.4,
+      size.height * 0.7,
+      size.width * 0.8,
+      size.height * 0.8,
     );
     canvas.drawPath(contourPath, contourPaint);
   }
@@ -871,4 +979,3 @@ class _FarmLandscapePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-

@@ -15,6 +15,7 @@ class ApiService {
   String? _cachedWorkingHost;
 
   final List<String> _backendHosts = [
+    "http://172.19.12.37:8000/api/v1",
     "http://127.0.0.1:8000/api/v1",
     "http://192.168.1.102:8000/api/v1",
     "http://192.168.1.101:8000/api/v1",
@@ -363,7 +364,8 @@ class ApiService {
         'crop_detected': 'Cotton (कपास / Bt Cotton)',
         'scientific_name': 'Gossypium hirsutum',
         'crop_stage': 'Boll Maturation & Bursting (Picking Phase)',
-        'disease_detected': 'Cotton Whitefly & Sucking Pest Complex (Bemisia tabaci)',
+        'disease_detected':
+            'Cotton Whitefly & Sucking Pest Complex (Bemisia tabaci)',
         'health_status': 'Pest Infested',
         'confidence': 0.95,
         'severity_level': 'Medium',
@@ -386,7 +388,9 @@ class ApiService {
           'Avoid tank-mixing synthetic pyrethroids to prevent pest resurgence',
         ],
       };
-    } else if (c.contains("tomato") || c.contains("tamatar") || c.contains("टमाटर")) {
+    } else if (c.contains("tomato") ||
+        c.contains("tamatar") ||
+        c.contains("टमाटर")) {
       return {
         'crop_detected': 'Tomato (टमाटर)',
         'scientific_name': 'Solanum lycopersicum',
@@ -509,7 +513,10 @@ class ApiService {
           'Treat seeds with fungicide prior to sowing',
         ],
       };
-    } else if (c.contains("potato") || c.contains("aloo") || c.contains("आलू") || c.contains("ਆਲੂ")) {
+    } else if (c.contains("potato") ||
+        c.contains("aloo") ||
+        c.contains("आलू") ||
+        c.contains("ਆਲੂ")) {
       return {
         'crop_detected': 'Potato (आलू)',
         'scientific_name': 'Solanum tuberosum',
@@ -537,7 +544,9 @@ class ApiService {
           'Destroy and bury blighted haulms before harvest',
         ],
       };
-    } else if (c.contains("mustard") || c.contains("sarson") || c.contains("सरसों")) {
+    } else if (c.contains("mustard") ||
+        c.contains("sarson") ||
+        c.contains("सरसों")) {
       return {
         'crop_detected': 'Mustard (सरसों / Sarson)',
         'scientific_name': 'Brassica juncea',
