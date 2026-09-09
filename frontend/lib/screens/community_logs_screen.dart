@@ -149,6 +149,49 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
     return list;
   }
 
+  String _getLocalizedCropName(String crop, String lang) {
+    final c = crop.toLowerCase();
+    if (c.contains("wheat") || c.contains("gehu") || c.contains("गेहूं") || c.contains("गहू") || c.contains("ਕਣਕ")) {
+      return lang == 'mr' ? 'गहू' : (lang == 'hi' ? 'गेहूं' : (lang == 'pa' ? 'ਕਣਕ' : 'Wheat'));
+    }
+    if (c.contains("cotton") || c.contains("kapas") || c.contains("कपास") || c.contains("कापूस") || c.contains("ਕਪਾਹ")) {
+      return lang == 'mr' ? 'कापूस' : (lang == 'hi' ? 'कपास' : (lang == 'pa' ? 'ਕਪਾਹ' : 'Cotton'));
+    }
+    if (c.contains("rice") || c.contains("paddy") || c.contains("dhaan") || c.contains("धान") || c.contains("भात") || c.contains("ਝੋਨਾ")) {
+      return lang == 'mr' ? 'भात' : (lang == 'hi' ? 'धान' : (lang == 'pa' ? 'ਝੋਨਾ' : 'Rice'));
+    }
+    if (c.contains("tomato") || c.contains("tamatar") || c.contains("टमाटर") || c.contains("टोमॅटो") || c.contains("ਟਮਾਟਰ")) {
+      return lang == 'mr' ? 'टोमॅटो' : (lang == 'hi' ? 'टमाटर' : (lang == 'pa' ? 'ਟਮਾਟਰ' : 'Tomato'));
+    }
+    if (c.contains("chilli") || c.contains("mirch") || c.contains("मिर्च") || c.contains("मिरची") || c.contains("ਮਿਰਚ")) {
+      return lang == 'mr' ? 'मिरची' : (lang == 'hi' ? 'मिर्च' : (lang == 'pa' ? 'ਮਿਰਚ' : 'Chilli'));
+    }
+    if (c.contains("potato") || c.contains("aloo") || c.contains("आलू") || c.contains("बटाटा") || c.contains("ਆਲੂ")) {
+      return lang == 'mr' ? 'बटाटा' : (lang == 'hi' ? 'आलू' : (lang == 'pa' ? 'ਆਲੂ' : 'Potato'));
+    }
+    if (c.contains("mustard") || c.contains("sarson") || c.contains("सरसों") || c.contains("मोहरी") || c.contains("ਸਰ੍ਹੋਂ")) {
+      return lang == 'mr' ? 'मोहरी' : (lang == 'hi' ? 'सरसों' : (lang == 'pa' ? 'ਸਰ੍ਹੋਂ' : 'Mustard'));
+    }
+    return crop;
+  }
+
+  String _getLocalizedActionType(String action, String lang) {
+    final a = action.toUpperCase();
+    if (a.contains("SPRAY") || a.contains("छिड़काव") || a.contains("फवारणी") || a.contains("ਸਪਰੇਅ")) {
+      return lang == 'mr' ? 'फवारणी' : (lang == 'hi' ? 'स्प्रे' : (lang == 'pa' ? 'ਸਪਰੇਅ' : 'SPRAY'));
+    }
+    if (a.contains("IRRIGAT") || a.contains("सिंचाई") || a.contains("पाणी") || a.contains("ਸਿੰਚਾਈ")) {
+      return lang == 'mr' ? 'पाणी पुरवठा' : (lang == 'hi' ? 'सिंचाई' : (lang == 'pa' ? 'ਸਿੰਚਾਈ' : 'IRRIGATION'));
+    }
+    if (a.contains("FERTIL") || a.contains("खत") || a.contains("खाद")) {
+      return lang == 'mr' ? 'खत वापर' : (lang == 'hi' ? 'उर्वरक/खाद' : (lang == 'pa' ? 'ਖਾਦ' : 'FERTILIZER'));
+    }
+    if (a.contains("VOICE") || a.contains("OBSERVATION") || a.contains("नोंद") || a.contains("रॉड")) {
+      return lang == 'mr' ? 'आवाज नोंद' : (lang == 'hi' ? 'वॉइस रिकॉर्ड' : (lang == 'pa' ? 'ਆਵਾਜ਼ ਰਿਕਾਰਡ' : 'VOICE LOG'));
+    }
+    return action;
+  }
+
   Future<void> _handleDownloadPdf(Map<String, dynamic> log, String itemKey) async {
     setState(() => _downloadingLogKeys.add(itemKey));
 
@@ -327,13 +370,13 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
                     ),
                     child: Column(
                       children: [
-                        _buildDetailRow(AppTranslations.tr(lang, "target_crop_lbl", "🌾 Target Crop"), crop),
+                        _buildDetailRow(AppTranslations.tr(lang, "target_crop_lbl", "🌾 Target Crop"), _getLocalizedCropName(crop, lang)),
                         const Divider(height: 16),
                         _buildDetailRow(AppTranslations.tr(lang, "input_applied_lbl", "🧪 Input Applied"), productName),
                         const Divider(height: 16),
                         _buildDetailRow(AppTranslations.tr(lang, "verified_dosage_lbl", "⚖️ Verified Dosage"), dosage),
                         const Divider(height: 16),
-                        _buildDetailRow(AppTranslations.tr(lang, "action_type_lbl", "🎯 Action Type"), log['action_type']?.toString() ?? "SPRAY"),
+                        _buildDetailRow(AppTranslations.tr(lang, "action_type_lbl", "🎯 Action Type"), _getLocalizedActionType(log['action_type']?.toString() ?? "SPRAY", lang)),
                       ],
                     ),
                   ),
@@ -624,7 +667,7 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
                               const SizedBox(width: 6),
                               Flexible(
                                 child: Text(
-                                  c == "All" ? AppTranslations.tr(lang, "all_crops", "All Crops") : c,
+                                  c == "All" ? AppTranslations.tr(lang, "all_crops", "All Crops") : _getLocalizedCropName(c, lang),
                                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -816,7 +859,7 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
                     border: Border.all(color: const Color(0xFFA7F3D0)),
                   ),
                   child: Text(
-                    "$score% OK",
+                    "$score% ${AppTranslations.tr(lang, "ok_label", "OK")}",
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -842,7 +885,7 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    "🌾 $crop",
+                    "🌾 ${_getLocalizedCropName(crop, lang)}",
                     style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                   ),
                 ),
@@ -853,7 +896,7 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    "⚡ $actionType",
+                    "⚡ ${_getLocalizedActionType(actionType, lang)}",
                     style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1D4ED8)),
                   ),
                 ),
@@ -893,7 +936,7 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  "Dose: $dosage",
+                  "${AppTranslations.tr(lang, "dose_lbl_short", "Dose:")} $dosage",
                   style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
                 ),
                 if (transcript.isNotEmpty) ...[
