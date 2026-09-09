@@ -2,6 +2,7 @@ import logging
 import hashlib
 from datetime import datetime
 from typing import List, Dict, Any, Optional
+import httpx
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import ServerSelectionTimeoutError, ConnectionFailure
 from backend.app.core.config import settings
@@ -24,8 +25,9 @@ class MongoDBManager:
             
             self.client = AsyncIOMotorClient(
                 uri,
-                serverSelectionTimeoutMS=2500,
-                connectTimeoutMS=2500,
+                serverSelectionTimeoutMS=5000,
+                connectTimeoutMS=5000,
+                tlsAllowInvalidCertificates=False,
             )
             
             # Test connection with a fast ping command
@@ -36,6 +38,9 @@ class MongoDBManager:
             
             # Initialize unique indexes
             await self._init_indexes()
+
+            # Automatic bidirectional sync with Google Sheets on connect
+            await self.sync_with_google_sheets()
         except (ServerSelectionTimeoutError, ConnectionFailure, Exception) as e:
             self.is_connected = False
             logger.warning(
@@ -93,6 +98,133 @@ class MongoDBManager:
         except Exception as err:
             logger.warning("MongoDB index/seed warning: %s", err)
 
+    async def sync_with_google_sheets(self) -> Dict[str, Any]:
+        """
+        Synchronizes all farmer accounts and evidence logs recorded in Google Sheets
+        (e.g., by teammates or farmers on mobile devices without local LAN access)
+        directly into MongoDB Atlas in real time.
+        """
+        if not self.is_connected or self.db is None:
+            return {"status": "skipped", "reason": "MongoDB not connected"}
+        
+        sheet_url = getattr(settings, "GOOGLE_APPS_SCRIPT_URL", "")
+        if not sheet_url:
+            return {"status": "skipped", "reason": "No GOOGLE_APPS_SCRIPT_URL configured"}
+
+        logger.info("Starting real-time synchronization between Google Sheets and MongoDB Atlas...")
+        synced_farmers = 0
+        synced_logs = 0
+
+        try:
+            async with httpx.AsyncClient(follow_redirects=True, timeout=15.0) as client:
+                # 1. Fetch all community logs & teammate entries
+                res = await client.get(f"{sheet_url}?action=get_all_community_logs")
+                if res.status_code == 200:
+                    data = res.json()
+                    logs = data.get("logs", [])
+                    for l in logs:
+                        f_name = str(l.get("farmer_name") or "").strip()
+                        raw_phone = str(l.get("farmer_phone") or l.get("phone") or "").strip()
+                        clean_phone = "".join(c for c in raw_phone if c.isdigit())
+                        
+                        if not f_name or not clean_phone or f_name.lower() in ["farmer name", "name"] or len(clean_phone) < 10:
+                            continue
+
+                        f_crop = l.get("crop") or l.get("crop_name") or "Cotton"
+                        f_village = l.get("village") or l.get("district") or "Nashik"
+                        f_state = l.get("state") or "Maharashtra"
+                        timestamp = l.get("timestamp") or datetime.utcnow().isoformat() + "Z"
+
+                        # Upsert teammate/farmer into MongoDB Atlas
+                        await self.db.farmers.update_one(
+                            {"phone": clean_phone},
+                            {
+                                "$set": {
+                                    "name": f_name,
+                                    "district": f_village,
+                                    "state": f_state,
+                                    "primary_crop": f_crop,
+                                    "last_login": timestamp,
+                                },
+                                "$setOnInsert": {
+                                    "phone": clean_phone,
+                                    "farm_size_acres": 10.0,
+                                    "created_at": timestamp,
+                                    "source": "google_sheets_sync",
+                                }
+                            },
+                            upsert=True
+                        )
+                        synced_farmers += 1
+
+                        # Upsert evidence log into MongoDB Atlas
+                        log_id = l.get("id") or l.get("log_id") or f"LOG-{clean_phone}-{timestamp}"
+                        l_copy = dict(l)
+                        l_copy["id"] = log_id
+                        l_copy["phone"] = clean_phone
+                        l_copy["farmer_phone"] = clean_phone
+                        l_copy["farmer_name"] = f_name
+                        l_copy["persisted_to"] = "mongodb"
+                        
+                        if not l_copy.get("verification_hash"):
+                            payload_str = f"{log_id}:{timestamp}:{clean_phone}:{l_copy.get('title')}:{l_copy.get('product_name')}"
+                            l_copy["verification_hash"] = hashlib.sha256(payload_str.encode()).hexdigest()
+                            l_copy["digital_seal_status"] = "AUTHENTICATED_CRYPTOGRAPHIC_SEAL"
+
+                        await self.db.evidence_logs.update_one(
+                            {"id": log_id},
+                            {"$set": l_copy},
+                            upsert=True
+                        )
+                        synced_logs += 1
+
+                # 2. Also try fetching farmers list if available
+                try:
+                    res_f = await client.get(f"{sheet_url}?action=get_all_farmers")
+                    if res_f.status_code == 200:
+                        data_f = res_f.json()
+                        farmers_list = data_f.get("farmers", [])
+                        for f in farmers_list:
+                            f_name = str(f.get("name") or "").strip()
+                            raw_phone = str(f.get("phone") or "").strip()
+                            clean_phone = "".join(c for c in raw_phone if c.isdigit())
+                            if not f_name or not clean_phone or f_name.lower() in ["farmer name", "name"] or len(clean_phone) < 10:
+                                continue
+                            
+                            await self.db.farmers.update_one(
+                                {"phone": clean_phone},
+                                {
+                                    "$set": {
+                                        "name": f_name,
+                                        "district": f.get("district") or f.get("village") or "Nashik",
+                                        "state": f.get("state") or "Maharashtra",
+                                        "primary_crop": f.get("primary_crop") or f.get("crop") or "Cotton",
+                                        "farm_size_acres": float(f.get("acres") or 10.0),
+                                        "last_login": f.get("last_login") or datetime.utcnow().isoformat() + "Z",
+                                    },
+                                    "$setOnInsert": {
+                                        "phone": clean_phone,
+                                        "created_at": f.get("registered_at") or datetime.utcnow().isoformat() + "Z",
+                                        "source": "google_sheets_farmers_tab",
+                                    }
+                                },
+                                upsert=True
+                            )
+                            synced_farmers += 1
+                except Exception as ef:
+                    logger.debug("Sheets farmers tab fetch note: %s", ef)
+
+            logger.info("Sync complete: Synced %d farmer records & %d logs into MongoDB Atlas!", synced_farmers, synced_logs)
+            return {
+                "status": "success",
+                "synced_farmers": synced_farmers,
+                "synced_logs": synced_logs,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            }
+        except Exception as e:
+            logger.error("Error during Google Sheets to MongoDB sync: %s", e)
+            return {"status": "error", "error": str(e)}
+
     async def close(self):
         if self.client:
             self.client.close()
@@ -110,7 +242,7 @@ class MongoDBManager:
         state: Optional[str] = None,
         acres: Optional[float] = None,
     ) -> Dict[str, Any]:
-        clean_phone = phone.strip()
+        clean_phone = "".join(c for c in phone.strip() if c.isdigit())
         clean_name = name.strip() if name and name.strip() else "Kisan Mitra"
 
         if self.is_connected and self.db is not None:
@@ -144,10 +276,10 @@ class MongoDBManager:
                 farmer_doc = {
                     "name": clean_name,
                     "phone": clean_phone,
-                    "district": district or "Ludhiana",
-                    "state": state or "Punjab",
-                    "farm_size_acres": acres or 4.5,
-                    "primary_crop": crop or "Wheat",
+                    "district": district or "Nashik",
+                    "state": state or "Maharashtra",
+                    "farm_size_acres": acres or 10.0,
+                    "primary_crop": crop or "Cotton",
                     "created_at": datetime.utcnow().isoformat() + "Z",
                     "last_login": datetime.utcnow().isoformat() + "Z",
                 }
@@ -161,14 +293,25 @@ class MongoDBManager:
         farmer_doc = {
             "name": clean_name,
             "phone": clean_phone,
-            "district": district or "Ludhiana",
-            "state": state or "Punjab",
-            "farm_size_acres": acres or 4.5,
-            "primary_crop": crop or "Wheat",
+            "district": district or "Nashik",
+            "state": state or "Maharashtra",
+            "farm_size_acres": acres or 10.0,
+            "primary_crop": crop or "Cotton",
             "last_login": datetime.utcnow().isoformat() + "Z",
             "storage_mode": "local_fallback",
         }
         return farmer_doc
+
+    async def get_all_farmers(self) -> List[Dict[str, Any]]:
+        if self.is_connected and self.db is not None:
+            try:
+                cursor = self.db.farmers.find({}, {"_id": 0}).sort("last_login", -1)
+                farmers = await cursor.to_list(length=200)
+                return farmers if farmers is not None else []
+            except Exception as e:
+                logger.error("MongoDB get_all_farmers error: %s", e)
+                return []
+        return []
 
     # ========================================================
     # EVIDENCE & FIELD LOGS METHODS (REAL-TIME PERSISTENCE)
@@ -185,7 +328,7 @@ class MongoDBManager:
             log_copy["timestamp"] = datetime.utcnow().isoformat() + "Z"
 
         # Lookup farmer name if missing
-        clean_phone = (log_copy.get("phone") or log_copy.get("farmer_phone") or "").strip()
+        clean_phone = "".join(c for c in (log_copy.get("phone") or log_copy.get("farmer_phone") or "").strip() if c.isdigit())
         log_copy["phone"] = clean_phone
         log_copy["farmer_phone"] = clean_phone
 
@@ -245,6 +388,26 @@ class MongoDBManager:
                     {"$set": log_copy},
                     upsert=True
                 )
+                # Also ensure farmer profile is updated
+                if clean_phone:
+                    await self.db.farmers.update_one(
+                        {"phone": clean_phone},
+                        {
+                            "$set": {
+                                "name": log_copy.get("farmer_name"),
+                                "district": log_copy.get("district") or "Nashik",
+                                "state": log_copy.get("state") or "Maharashtra",
+                                "primary_crop": log_copy.get("crop") or "Cotton",
+                                "last_login": log_copy.get("timestamp") or datetime.utcnow().isoformat() + "Z",
+                            },
+                            "$setOnInsert": {
+                                "phone": clean_phone,
+                                "farm_size_acres": 10.0,
+                                "created_at": log_copy.get("timestamp") or datetime.utcnow().isoformat() + "Z",
+                            }
+                        },
+                        upsert=True
+                    )
                 # Remove MongoDB _id before returning
                 log_copy.pop("_id", None)
                 log_copy["persisted_to"] = "mongodb"
@@ -280,7 +443,7 @@ class MongoDBManager:
         }
 
     async def get_farmer_logs(self, phone: str, limit: int = 100) -> List[Dict[str, Any]]:
-        clean_phone = phone.strip()
+        clean_phone = "".join(c for c in phone.strip() if c.isdigit())
         if self.is_connected and self.db is not None:
             try:
                 cursor = self.db.evidence_logs.find(

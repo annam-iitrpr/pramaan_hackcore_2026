@@ -319,6 +319,40 @@ function doPost(e) {
         logs: allLogs
       });
     }
+
+    // --------------------------------------------------------------------------
+    // ACTION 5: GET ALL REGISTERED FARMERS / TEAMMATES
+    // --------------------------------------------------------------------------
+    if (action === "get_all_farmers" || action === "get_farmers") {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var farmersSheet = ss.getSheetByName(SHEET_FARMERS);
+      if (!farmersSheet || farmersSheet.getLastRow() <= 1) {
+        return createJsonResponse({ status: "success", total_farmers: 0, farmers: [] });
+      }
+      var rows = farmersSheet.getDataRange().getValues();
+      var fList = [];
+      for (var i = 1; i < rows.length; i++) {
+        var rName = String(rows[i][1] || "").trim();
+        var rPhone = String(rows[i][2] || "").trim();
+        if (rName && rPhone && rName !== "Farmer Name") {
+          fList.push({
+            registered_at: rows[i][0],
+            name: rName,
+            phone: rPhone,
+            village: rows[i][3],
+            district: rows[i][3],
+            state: rows[i][4],
+            crop: rows[i][5],
+            primary_crop: rows[i][5],
+            acres: rows[i][6],
+            last_login: rows[i][7],
+            total_logs: rows[i][8],
+            status: rows[i][9] || "ACTIVE"
+          });
+        }
+      }
+      return createJsonResponse({ status: "success", total_farmers: fList.length, farmers: fList });
+    }
     
     return createJsonResponse({
       status: "error",
@@ -340,6 +374,37 @@ function doGet(e) {
     var params = e && e.parameter ? e.parameter : {};
     var action = params.action || (params.phone ? "get_farmer_logs" : (params.community ? "get_community_logs" : "health"));
     
+    if (action === "get_all_farmers" || action === "get_farmers") {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var farmersSheet = ss.getSheetByName(SHEET_FARMERS);
+      if (!farmersSheet || farmersSheet.getLastRow() <= 1) {
+        return createJsonResponse({ status: "success", total_farmers: 0, farmers: [] });
+      }
+      var rows = farmersSheet.getDataRange().getValues();
+      var fList = [];
+      for (var i = 1; i < rows.length; i++) {
+        var rName = String(rows[i][1] || "").trim();
+        var rPhone = String(rows[i][2] || "").trim();
+        if (rName && rPhone && rName !== "Farmer Name") {
+          fList.push({
+            registered_at: rows[i][0],
+            name: rName,
+            phone: rPhone,
+            village: rows[i][3],
+            district: rows[i][3],
+            state: rows[i][4],
+            crop: rows[i][5],
+            primary_crop: rows[i][5],
+            acres: rows[i][6],
+            last_login: rows[i][7],
+            total_logs: rows[i][8],
+            status: rows[i][9] || "ACTIVE"
+          });
+        }
+      }
+      return createJsonResponse({ status: "success", total_farmers: fList.length, farmers: fList });
+    }
+
     if (action === "get_all_community_logs" || action === "get_community_logs" || action === "get_all_logs") {
       var allLogs = getLogsForFarmer("", "");
       return createJsonResponse({
