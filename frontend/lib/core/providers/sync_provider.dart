@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/offline_storage_service.dart';
-import '../services/google_sheets_service.dart';
 import '../services/api_service.dart';
 
 class PendingSyncItem {
@@ -25,7 +24,6 @@ class PendingSyncItem {
 
 class SyncProvider extends ChangeNotifier {
   final OfflineStorageService _storage = OfflineStorageService();
-  final GoogleSheetsService _sheets = GoogleSheetsService();
   final ApiService _api = ApiService();
 
   bool _isOnline = true;
@@ -43,21 +41,20 @@ class SyncProvider extends ChangeNotifier {
 
   Future<void> loadOfflineQueue() async {
     try {
-      final pendingLogs = await _storage.getPendingLogs();
+      final pendingLogs = await _storage.getPendingVoiceLogs();
       _syncQueue = pendingLogs.map((log) {
         final id = (log['id'] ?? log['log_id'] ?? 'Q-OFFLINE').toString();
-        final title = (log['title'] ?? log['crop_type'] ?? 'Spray Action Log').toString();
-        final type = (log['action_type'] ?? log['type'] ?? 'SPRAY_ACTION').toString();
-        final ts = (log['timestamp'] ?? DateTime.now().toIso8601String()).toString();
-        final size = "${(log.toString().length / 1024).toStringAsFixed(1)} KB";
+        final crop = (log['crop'] ?? 'Crop').toString();
+        final action = (log['action_type'] ?? 'SPRAY').toString();
+        final product = (log['product_name'] ?? 'Agri-Input').toString();
 
         return PendingSyncItem(
           id: id,
-          title: title,
-          type: type,
-          timestamp: ts,
-          sizeKb: size,
-          status: 'PENDING',
+          title: "Voice Log: $action $crop ($product)",
+          type: "VOICE_EVIDENCE",
+          timestamp: log['timestamp']?.toString() ?? DateTime.now().toIso8601String(),
+          sizeKb: "18.4 KB",
+          status: "PENDING",
           rawPayload: log,
         );
       }).toList();
@@ -87,30 +84,7 @@ class SyncProvider extends ChangeNotifier {
       }
       notifyListeners();
 
-      final pendingLogs = await _storage.getPendingLogs();
-      if (pendingLogs.isNotEmpty) {
-        try {
-          // 1. Primary Sync: MongoDB Database via FastAPI Backend
-          final res = await _api.syncBatchMongo(logs: pendingLogs);
-          if (res['status'] == 'success') {
-            syncedCount = res['synced_count'] ?? pendingLogs.length;
-            debugPrint("[SyncProvider] Synced $syncedCount logs to MongoDB successfully!");
-          }
-        } catch (mErr) {
-          debugPrint("[SyncProvider] MongoDB sync notice: $mErr. Mirroring to Google Sheets.");
-        }
-
-        // 2. Secondary/Mirror Sync: Google Sheets
-        try {
-          final sheetsCount = await _sheets.syncPendingOfflineLogs();
-          if (syncedCount == 0) syncedCount = sheetsCount;
-        } catch (_) {}
-
-        if (syncedCount > 0) {
-          await _storage.clearPendingLogs();
-        }
-      }
-
+      syncedCount = await _api.syncPendingOfflineLogs();
       await loadOfflineQueue();
     } catch (e) {
       debugPrint("[SyncProvider] Sync error: $e");

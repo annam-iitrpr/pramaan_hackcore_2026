@@ -17,9 +17,6 @@ class OfflineStorageService {
   // 1. PENDING OFFLINE LOGS QUEUE
   // ==========================================
 
-  Future<List<Map<String, dynamic>>> getPendingLogs() => getPendingVoiceLogs();
-  Future<void> savePendingLog(Map<String, dynamic> log) => savePendingVoiceLog(log);
-
   Future<List<Map<String, dynamic>>> getPendingVoiceLogs() async {
     try {
       final file = await _getFile('offline_pending_logs.json');

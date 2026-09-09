@@ -1,146 +1,76 @@
 from fastapi import APIRouter, HTTPException, Query, Body
 from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
 from backend.app.database.mongodb import mongo_db
 
-router = APIRouter(prefix="/farmer-db", tags=["MongoDB Farmer & Offline Sync"])
+router = APIRouter(prefix="/farmer", tags=["Farmer MongoDB Database & Offline Sync"])
 
-class FarmerLoginRequest(BaseModel):
-    name: str = Field(..., description="Farmer full name")
-    phone: str = Field(..., description="10-digit mobile number")
-    district: Optional[str] = "Nashik"
-    village: Optional[str] = "Nashik"
-    state: Optional[str] = "Maharashtra"
-    primary_crop: Optional[str] = "Cotton"
-    crop: Optional[str] = None
-    acres: Optional[float] = 10.0
+@router.post("/auth")
+async def farmer_auth(payload: Dict[str, Any] = Body(...)):
+    """
+    Farmer passwordless login or auto-registration stored in MongoDB Atlas.
+    """
+    phone = str(payload.get("phone") or payload.get("farmer_phone", "")).strip()
+    if not phone:
+        raise HTTPException(status_code=400, detail="Farmer phone number is required")
 
-class BatchSyncRequest(BaseModel):
-    phone: Optional[str] = None
-    logs: List[Dict[str, Any]] = Field(..., description="List of offline field logs created without internet")
+    farmer = await mongo_db.save_or_update_farmer(payload)
+    logs = await mongo_db.get_farmer_logs(phone)
+    
+    return {
+        "status": "success",
+        "is_new_farmer": False,
+        "farmer": farmer,
+        "logs": logs
+    }
 
-class SingleEvidenceLog(BaseModel):
-    id: Optional[str] = None
-    phone: str = Field(..., description="Farmer mobile number")
-    title: str
-    description: Optional[str] = ""
-    evidence_type: str = "SPRAY_LOG"
-    product_name: Optional[str] = ""
-    dosage: Optional[str] = ""
-    crop: Optional[str] = "Wheat"
-    district: Optional[str] = "Ludhiana"
-    media_url: Optional[str] = None
-    verification_status: Optional[str] = "VERIFIED"
-    verification_score: Optional[float] = 1.0
-
-# ----------------------------------------------------
-# 1. FARMER AUTH & PROFILE
-# ----------------------------------------------------
-@router.post("/login")
-async def farmer_login(req: FarmerLoginRequest):
-    """
-    Authenticate or register a farmer using their phone number in MongoDB.
-    """
-    try:
-        farmer = await mongo_db.get_or_create_farmer(
-            phone=req.phone,
-            name=req.name,
-            district=req.district or req.village or "Nashik",
-            state=req.state or "Maharashtra",
-            crop=req.crop or req.primary_crop or "Cotton",
-            acres=req.acres or 10.0,
-        )
-        return {
-            "status": "success",
-            "message": f"Welcome {farmer.get('name', req.name)}! Connected to PRAMAAN MongoDB.",
-            "farmer": farmer,
-            "database": "mongodb" if mongo_db.is_connected else "local_resilient_cache",
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# ----------------------------------------------------
-# 2. OFFLINE BATCH SYNC
-# ----------------------------------------------------
-@router.post("/sync-batch")
-async def sync_offline_batch_logs(req: BatchSyncRequest):
-    """
-    Synchronizes an entire queue of logs recorded offline in the field directly into MongoDB.
-    """
-    try:
-        result = await mongo_db.save_batch_logs(req.logs)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Batch sync failed: {e}")
-
-# ----------------------------------------------------
-# 3. SAVE SINGLE FIELD EVIDENCE
-# ----------------------------------------------------
-@router.post("/log")
-async def create_evidence_log(log: Dict[str, Any] = Body(...)):
-    """
-    Persist an individual spray, crop scan, or QR audit log to MongoDB.
-    """
-    try:
-        saved = await mongo_db.save_evidence_log(log)
-        return {
-            "status": "success",
-            "log": saved,
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# ----------------------------------------------------
-# 4. GET FARMER'S FIELD LOGS
-# ----------------------------------------------------
-@router.get("/logs/{phone}")
-async def get_farmer_logs(phone: str, limit: int = Query(50, ge=1, le=200)):
-    """
-    Retrieve all verified spray and crop logs for a specific farmer.
-    """
-    try:
-        logs = await mongo_db.get_farmer_logs(phone=phone, limit=limit)
-        return {
-            "status": "success",
-            "phone": phone,
-            "count": len(logs),
-            "logs": logs,
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# ----------------------------------------------------
-# 5. COMMUNITY AUDIT FEED
-# ----------------------------------------------------
-@router.get("/community")
-async def get_community_logs(
-    crop: Optional[str] = Query(None),
-    district: Optional[str] = Query(None),
-    limit: int = Query(40, ge=1, le=100),
+@router.get("/logs")
+async def get_farmer_logs(
+    phone: str = Query(..., description="Farmer phone number"),
+    name: Optional[str] = Query(None, description="Farmer name")
 ):
     """
-    Returns public verified farmer evidence logs from MongoDB with optional crop and district filtering.
+    Fetch all verified agricultural compliance & foliar logs for a specific farmer.
     """
-    try:
-        feed = await mongo_db.get_community_feed(crop=crop, district=district, limit=limit)
-        return {
-            "status": "success",
-            "count": len(feed),
-            "records": feed,
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# ----------------------------------------------------
-# 6. DB HEALTH STATUS
-# ----------------------------------------------------
-@router.get("/status")
-async def get_database_status():
-    """
-    Returns live MongoDB connectivity status and statistics.
-    """
+    logs = await mongo_db.get_farmer_logs(phone)
     return {
-        "mongodb_connected": mongo_db.is_connected,
-        "database_engine": "MongoDB Atlas / Engine" if mongo_db.is_connected else "Local High-Speed Cache",
-        "offline_sync_ready": True,
+        "status": "success",
+        "farmer_phone": phone,
+        "total_logs": len(logs),
+        "logs": logs
     }
+
+@router.post("/log-entry")
+async def add_farmer_log_entry(payload: Dict[str, Any] = Body(...)):
+    """
+    Save a new voice observation, crop scan, or product application log to MongoDB Atlas.
+    """
+    saved_log = await mongo_db.save_evidence_log(payload)
+    return {
+        "status": "success",
+        "message": "Log saved to MongoDB Atlas",
+        "log": saved_log
+    }
+
+@router.get("/community-feed")
+async def get_community_feed(limit: int = Query(50, ge=1, le=200)):
+    """
+    Fetch live community verified logs across all farmers from MongoDB Atlas.
+    """
+    logs = await mongo_db.get_community_feed(limit=limit)
+    return {
+        "status": "success",
+        "total_logs": len(logs),
+        "logs": logs
+    }
+
+@router.post("/sync-batch")
+async def sync_offline_batch(payload: Dict[str, Any] = Body(...)):
+    """
+    Drains the offline queue from the mobile app and upserts all pending logs in bulk.
+    """
+    logs = payload.get("logs") or payload.get("pending_logs") or []
+    if not isinstance(logs, list):
+        raise HTTPException(status_code=400, detail="Invalid logs payload; expected list.")
+
+    result = await mongo_db.sync_batch_logs(logs)
+    return result

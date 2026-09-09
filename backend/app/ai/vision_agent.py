@@ -55,228 +55,293 @@ SUPPORTED_CROPS = {
 # ============================================================
 
 AGRONOMY_KB: Dict[str, Dict[str, Dict[str, Any]]] = {
-
     "cotton": {
         "whitefly": {
-            "disease_type": "Pest Infestation",
-            "recommended_active_ingredient": "Diafenthiuron 50% WP @ 1.5 g/L of water (Mix in 200 L/acre)",
+            "disease_category": "Insect pest infestation",
+            "recommended_active_ingredient": "Pyriproxyfen 10% EC @ 2.0 ml/L or Dinotefuran 20% SG @ 0.5 g/L",
+            "application_method": "Spray on the undersides of leaves where nymphs congregate.",
+            "timing_weather": "Do it within 3 days, preferably in the morning when the weather is cool.",
+            "protective_note": "This will help control the pest and protect your crop.",
             "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) + 20 Yellow Sticky Traps/Acre",
             "prevention_tips": [
-                "Spray on the leaves, covering the underside where whiteflies hide.",
-                "Do it within 2-3 days, preferably in the morning or late evening.",
-                "Avoid excessive nitrogen fertilizer and remove border weeds."
+                "Monitor the underside of leaves regularly.",
+                "Remove alternate weed hosts around field borders.",
+                "Avoid excessive synthetic pyrethroid sprays."
             ],
         },
-        "pink bollworm": {
-            "disease_type": "Pest Infestation",
-            "recommended_active_ingredient": "Emamectin Benzoate 5% SG @ 0.5 g/L of water (Mix in 200 L/acre)",
-            "organic_alternative": "Install 5-8 Pheromone Traps/Acre (Gossyplure lure)",
+        "bollworm": {
+            "disease_category": "Insect pest infestation",
+            "recommended_active_ingredient": "Emamectin Benzoate 5% SG @ 0.5 g/L or Spinetoram 11.7% SC @ 1.0 ml/L",
+            "application_method": "Spray thoroughly on squares, flowers, and developing bolls.",
+            "timing_weather": "Apply at early larval hatch stage during calm morning hours.",
+            "protective_note": "This will prevent boll damage and protect yield quality.",
+            "organic_alternative": "Pheromone traps @ 5/acre + Bacillus thuringiensis (Bt) @ 2 g/L",
             "prevention_tips": [
-                "Spray when moth catches exceed 8 moths/trap for 3 consecutive days.",
-                "Do it in early morning when winds are calm.",
-                "Destroy rosette flowers and pick dropped bolls."
+                "Install pheromone traps for pest monitoring.",
+                "Collect and destroy flared-up squares and dropped bolls."
+            ],
+        },
+        "leaf curl": {
+            "disease_category": "Viral disease",
+            "recommended_active_ingredient": "Manage whitefly vector using Acetamiprid 20% SP @ 0.4 g/L or Diafenthiuron 50% WP @ 1.5 g/L",
+            "application_method": "Spray to control the whitefly insect vector on tender leaves.",
+            "timing_weather": "Spray within 2 days to stop vector spread.",
+            "protective_note": "Controlling the insect vector prevents virus transmission.",
+            "organic_alternative": "Neem oil 1500 ppm @ 3 ml/L + Yellow sticky traps",
+            "prevention_tips": [
+                "Uproot and bury severely stunted infected plants.",
+                "Keep field borders clean of malvaceous weeds."
             ],
         },
     },
 
     "wheat": {
         "yellow rust": {
-            "disease_type": "Fungal disease",
-            "recommended_active_ingredient": "Propiconazole 25% EC @ 1 ml per litre of water (Mix in 200 L/acre)",
-            "organic_alternative": "Use resistant varieties (e.g. PBW-826, HD-3086) & Trichoderma viride",
+            "disease_category": "Fungal disease",
+            "recommended_active_ingredient": "Use Propiconazole 25% EC @ 1 ml per litre of water",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray on the leaves, covering both sides.",
+            "timing_weather": "Do it within 3 days, preferably in the morning when the weather is cool.",
+            "protective_note": "This will help control the disease and protect your crop.",
+            "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) or plant resistant varieties (PBW 826 / HD 3086)",
             "prevention_tips": [
-                "Spray on the leaves, covering both sides thoroughly.",
-                "Do it within 3 days, preferably in the morning when the weather is cool.",
-                "Monitor fields closely during cool, cloudy, and humid days."
+                "Monitor fields closely during cool and humid weather.",
+                "Prefer locally recommended rust-resistant certified varieties."
             ],
         },
-        "stripe rust": {
-            "disease_type": "Fungal disease",
-            "recommended_active_ingredient": "Propiconazole 25% EC @ 1 ml per litre of water (Mix in 200 L/acre)",
-            "organic_alternative": "Use certified rust-resistant seed varieties & Trichoderma foliar spray",
+        "rust": {
+            "disease_category": "Fungal disease",
+            "recommended_active_ingredient": "Use Propiconazole 25% EC @ 1 ml per litre of water",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray on the leaves, covering both sides.",
+            "timing_weather": "Do it within 3 days, preferably in the morning when the weather is cool.",
+            "protective_note": "This will help control the disease and protect your crop.",
+            "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) or resistant varieties",
             "prevention_tips": [
-                "Spray on the leaves, covering both sides thoroughly.",
-                "Do it within 3 days, preferably in the morning when the weather is cool.",
-                "Avoid late sowing and maintain balanced potash application."
+                "Monitor fields closely during cool and humid weather.",
+                "Prefer locally recommended rust-resistant varieties."
             ],
         },
-        "loose smut": {
-            "disease_type": "Fungal disease",
-            "recommended_active_ingredient": "Tebuconazole 2% DS (Seed Treatment @ 1.5 g/kg seed) or Carbendazim 50% WP @ 1 g/L",
-            "organic_alternative": "Solar heat seed treatment in May-June before sowing",
-            "prevention_tips": [
-                "Rogue out and destroy infected smutted ears in plastic bags.",
-                "Use certified disease-free seeds."
-            ],
+        "powdery mildew": {
+            "disease_category": "Fungal disease",
+            "recommended_active_ingredient": "Use Hexaconazole 5% EC @ 1 ml per litre of water or Wettable Sulphur @ 2.5 g/L",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray on both upper and lower leaf surfaces.",
+            "timing_weather": "Apply at first appearance of white powdery patches.",
+            "protective_note": "Protects photosynthesis and grain filling.",
+            "organic_alternative": "Wettable Sulphur 80% WP @ 2.5 g/L",
+            "prevention_tips": ["Avoid dense sowing and maintain aeration."],
         },
-    },
-
-    "tomato": {
-        "early blight": {
-            "disease_type": "Fungal disease",
-            "recommended_active_ingredient": "Mancozeb 75% WP @ 2.5 g/L or Azoxystrobin @ 1 ml/L (Mix in 150 L/acre)",
-            "organic_alternative": "Neem Oil 5 ml/L + Trichoderma harzianum @ 5 g/L",
-            "prevention_tips": [
-                "Spray on the foliage covering lower and middle leaves thoroughly.",
-                "Do it within 3 days in the early morning.",
-                "Prune bottom leaves touching the soil and avoid overhead irrigation."
-            ],
-        },
-        "late blight": {
-            "disease_type": "Fungal disease",
-            "recommended_active_ingredient": "Dimethomorph 50% WP @ 1 g/L + Mancozeb 75% WP @ 2 g/L",
-            "organic_alternative": "Copper Oxychloride 50% WP @ 2.5 g/L",
-            "prevention_tips": [
-                "Spray immediately at the first sign of water-soaked lesions.",
-                "Ensure proper row spacing for sunlight and air circulation."
-            ],
-        },
-        "leaf curl": {
-            "disease_type": "Viral disease (Whitefly vector)",
-            "recommended_active_ingredient": "Acetamiprid 20% SP @ 0.5 g/L or Imidacloprid 17.8% SL @ 0.5 ml/L",
-            "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) + Yellow Sticky Traps (25/Acre)",
-            "prevention_tips": [
-                "Control whitefly vector before flower onset.",
-                "Remove and bury severely stunted plants immediately."
-            ],
-        },
-    },
-
-    "chilli": {
-        "leaf curl": {
-            "disease_type": "Viral disease (Thrips/Mite vector)",
-            "recommended_active_ingredient": "Diafenthiuron 50% WP @ 1.5 g/L or Fipronil 5% SC @ 2 ml/L",
-            "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) + 20 Blue & Yellow Sticky Traps/Acre",
-            "prevention_tips": [
-                "Spray on the leaves, covering the underside and growing tips.",
-                "Do it within 2-3 days, preferably in early morning when calm.",
-                "Avoid moisture stress and remove border weeds."
-            ],
-        },
-        "thrips": {
-            "disease_type": "Pest Infestation",
-            "recommended_active_ingredient": "Spinetoram 11.7% SC @ 1 ml/L or Fipronil 5% SC @ 2 ml/L",
-            "organic_alternative": "Blue Sticky Traps @ 25 traps/acre + Neem oil spray 5 ml/L",
-            "prevention_tips": [
-                "Spray early in the morning when thrips are active on flowers.",
-                "Use protective border crops like Maize or Sorghum."
-            ],
-        },
-        "anthracnose": {
-            "disease_type": "Fungal disease (Fruit Rot)",
-            "recommended_active_ingredient": "Azoxystrobin 18.2% + Difenoconazole 11.4% SC @ 1 ml/L",
-            "organic_alternative": "Trichoderma viride @ 5 g/L + Copper Hydroxide @ 2 g/L",
-            "prevention_tips": [
-                "Spray thoroughly covering fruits and foliage before rain showers.",
-                "Remove infected chilli pods from the field."
-            ],
+        "aphid": {
+            "disease_category": "Insect pest infestation",
+            "recommended_active_ingredient": "Use Thiamethoxam 25% WDG @ 0.2 g per litre of water",
+            "mix_instructions": "Mix in 150-200 litres of water per acre.",
+            "application_method": "Spray on earheads and upper foliage.",
+            "timing_weather": "Spray in early morning before bees and pollinators become active.",
+            "protective_note": "Prevents sap suction and earhead shrivelling.",
+            "organic_alternative": "Neem oil 1500 ppm @ 3 ml/L",
+            "prevention_tips": ["Conserve natural predators like ladybird beetles."],
         },
     },
 
     "paddy": {
         "sheath blight": {
-            "disease_type": "Fungal disease",
-            "recommended_active_ingredient": "Hexaconazole 5% EC @ 2 ml/L or Validamycin 3% L @ 2.5 ml/L (Mix in 200 L/acre)",
-            "organic_alternative": "Pseudomonas fluorescens @ 10 g/L or Trichoderma viride @ 5 g/L",
+            "disease_category": "Fungal disease",
+            "recommended_active_ingredient": "Use Validamycin 3% L @ 2 ml per litre of water or Hexaconazole 5% EC @ 2 ml/L",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray directed at the lower leaf sheaths near the water level.",
+            "timing_weather": "Do it within 3 days, preferably in the morning when the weather is cool.",
+            "protective_note": "This will stop fungal spread up the sheath and protect the panicle.",
+            "organic_alternative": "Trichoderma viride or Pseudomonas fluorescens @ 5 g/L",
             "prevention_tips": [
-                "Spray targeted at the lower leaf sheaths and base of stems.",
-                "Do it within 3 days, preferably in the morning when calm.",
-                "Avoid excess urea application and maintain optimal water level."
+                "Avoid excessive nitrogen fertilizer application.",
+                "Maintain alternate wetting and drying of the field.",
+                "Ensure proper plant spacing for sunlight penetration."
             ],
         },
         "blast": {
-            "disease_type": "Fungal disease (Pyricularia oryzae)",
-            "recommended_active_ingredient": "Tricyclazole 75% WP @ 0.6 g/L or Isoprothiolane 40% EC @ 1.5 ml/L",
-            "organic_alternative": "Pseudomonas fluorescens @ 10 g/L foliar spray",
+            "disease_category": "Fungal disease",
+            "recommended_active_ingredient": "Use Tricyclazole 75% WP @ 0.6 g per litre of water",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray evenly on the entire canopy covering all leaves.",
+            "timing_weather": "Apply immediately upon spotting spindle-shaped lesions.",
+            "protective_note": "Halts blast lesion expansion and prevents neck blast.",
+            "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) or Pseudomonas @ 5 g/L",
             "prevention_tips": [
-                "Spray at tillering and panicle emergence stage.",
-                "Avoid split application of excess nitrogen."
+                "Avoid split excess nitrogen doses.",
+                "Use certified disease-resistant seeds."
             ],
         },
+        "stem borer": {
+            "disease_category": "Insect pest infestation",
+            "recommended_active_ingredient": "Use Chlorantraniliprole 18.5% SC @ 0.3 ml per litre of water",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Apply as foliar spray or broadcast Cartap Hydrochloride 4% G @ 10 kg/acre.",
+            "timing_weather": "Apply at the egg-hatching / deadheart appearance stage.",
+            "protective_note": "Protects tillers from deadhearts and white ears.",
+            "organic_alternative": "Trichogramma japonicum egg parasitoids @ 50,000/acre",
+            "prevention_tips": ["Clip seedling leaf tips before transplanting."],
+        },
         "brown spot": {
-            "disease_type": "Fungal disease",
-            "recommended_active_ingredient": "Mancozeb 75% WP @ 2.5 g/L or Carbendazim @ 1 g/L",
-            "organic_alternative": "Neem cake soil application + Trichoderma seed treatment",
-            "prevention_tips": [
-                "Correct soil nutrient deficiencies especially potash and zinc.",
-                "Ensure proper seed treatment before nursery sowing."
-            ],
+            "disease_category": "Fungal disease",
+            "recommended_active_ingredient": "Use Mancozeb 75% WP @ 2.5 g per litre of water",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray on the foliage covering all leaves.",
+            "timing_weather": "Apply in clear weather after dew has dried.",
+            "protective_note": "Controls brown spot lesions and improves grain weight.",
+            "organic_alternative": "Pseudomonas fluorescens @ 5 g/L",
+            "prevention_tips": ["Ensure balanced potassium nutrition in soil."],
         },
     },
 
     "rice": {
         "sheath blight": {
-            "disease_type": "Fungal disease",
-            "recommended_active_ingredient": "Hexaconazole 5% EC @ 2 ml/L or Validamycin 3% L @ 2.5 ml/L (Mix in 200 L/acre)",
-            "organic_alternative": "Pseudomonas fluorescens @ 10 g/L or Trichoderma viride @ 5 g/L",
+            "disease_category": "Fungal disease",
+            "recommended_active_ingredient": "Use Validamycin 3% L @ 2 ml per litre of water or Hexaconazole 5% EC @ 2 ml/L",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray directed at the lower leaf sheaths near the water level.",
+            "timing_weather": "Do it within 3 days, preferably in the morning when the weather is cool.",
+            "protective_note": "This will stop fungal spread up the sheath and protect the panicle.",
+            "organic_alternative": "Trichoderma viride or Pseudomonas fluorescens @ 5 g/L",
             "prevention_tips": [
-                "Spray targeted at the lower leaf sheaths and base of stems.",
-                "Do it within 3 days, preferably in the morning when calm.",
-                "Avoid excess urea application and maintain optimal water level."
+                "Avoid excessive nitrogen fertilizer application.",
+                "Maintain alternate wetting and drying of the field.",
+                "Ensure proper plant spacing for sunlight penetration."
             ],
         },
         "blast": {
-            "disease_type": "Fungal disease (Pyricularia oryzae)",
-            "recommended_active_ingredient": "Tricyclazole 75% WP @ 0.6 g/L or Isoprothiolane 40% EC @ 1.5 ml/L",
-            "organic_alternative": "Pseudomonas fluorescens @ 10 g/L foliar spray",
+            "disease_category": "Fungal disease",
+            "recommended_active_ingredient": "Use Tricyclazole 75% WP @ 0.6 g per litre of water",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray evenly on the entire canopy covering all leaves.",
+            "timing_weather": "Apply immediately upon spotting spindle-shaped lesions.",
+            "protective_note": "Halts blast lesion expansion and prevents neck blast.",
+            "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) or Pseudomonas @ 5 g/L",
             "prevention_tips": [
-                "Spray at tillering and panicle emergence stage.",
-                "Avoid split application of excess nitrogen."
+                "Avoid split excess nitrogen doses.",
+                "Use certified disease-resistant seeds."
             ],
         },
-        "brown spot": {
-            "disease_type": "Fungal disease",
-            "recommended_active_ingredient": "Mancozeb 75% WP @ 2.5 g/L or Carbendazim @ 1 g/L",
-            "organic_alternative": "Neem cake soil application + Trichoderma seed treatment",
+        "stem borer": {
+            "disease_category": "Insect pest infestation",
+            "recommended_active_ingredient": "Use Chlorantraniliprole 18.5% SC @ 0.3 ml per litre of water",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Apply as foliar spray or broadcast Cartap Hydrochloride 4% G @ 10 kg/acre.",
+            "timing_weather": "Apply at the egg-hatching / deadheart appearance stage.",
+            "protective_note": "Protects tillers from deadhearts and white ears.",
+            "organic_alternative": "Trichogramma egg parasitoid cards @ 2/acre",
+            "prevention_tips": ["Clip seedling leaf tips before transplanting."],
+        },
+    },
+
+    "tomato": {
+        "early blight": {
+            "disease_category": "Fungal disease",
+            "recommended_active_ingredient": "Use Mancozeb 75% WP @ 2.5 g per litre of water or Chlorothalonil @ 2 g/L",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray on lower leaves first and work upwards.",
+            "timing_weather": "Do it within 3 days, preferably in the morning when the weather is cool.",
+            "protective_note": "This will help control the disease and protect your crop.",
+            "organic_alternative": "Trichoderma harzianum @ 5 g/L + remove lower infected leaves",
             "prevention_tips": [
-                "Correct soil nutrient deficiencies especially potash and zinc.",
-                "Ensure proper seed treatment before nursery sowing."
+                "Avoid overhead sprinkler irrigation.",
+                "Remove and bury bottom diseased foliage."
             ],
+        },
+        "late blight": {
+            "disease_category": "Fungal disease",
+            "recommended_active_ingredient": "Use Metalaxyl 8% + Mancozeb 64% WP @ 2.5 g per litre of water",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray thoroughly covering both upper and lower leaf surfaces.",
+            "timing_weather": "Apply immediately during cool, cloudy, humid weather.",
+            "protective_note": "Stops rapid foliage blighting and fruit rot.",
+            "organic_alternative": "Copper Oxychloride 50% WP @ 2.5 g/L",
+            "prevention_tips": ["Ensure wide row spacing for good air circulation."],
+        },
+        "leaf curl": {
+            "disease_category": "Viral disease",
+            "recommended_active_ingredient": "Use Acetamiprid 20% SP @ 0.4 g per litre of water to manage whiteflies",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray on the undersides of young leaves.",
+            "timing_weather": "Spray in early morning before whiteflies take flight.",
+            "protective_note": "Controls whitefly vector and protects new growth.",
+            "organic_alternative": "5% NSKE + 20 Yellow Sticky Traps/Acre",
+            "prevention_tips": ["Rogue out severely affected stunted plants early."],
+        },
+    },
+
+    "chilli": {
+        "leaf curl": {
+            "disease_category": "Viral / Thrips infestation",
+            "recommended_active_ingredient": "Use Diafenthiuron 50% WP @ 1.5 g per litre of water",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray on the leaves, covering both sides.",
+            "timing_weather": "Do it within 3 days, preferably in the morning when the weather is cool.",
+            "protective_note": "This will help control the disease and protect your crop.",
+            "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) + 20 Blue & Yellow Sticky Traps/Acre",
+            "prevention_tips": [
+                "Monitor young leaves and terminal shoots frequently.",
+                "Control vector populations using integrated pest management."
+            ],
+        },
+        "thrips": {
+            "disease_category": "Insect pest infestation",
+            "recommended_active_ingredient": "Use Fipronil 5% SC @ 2 ml per litre of water or Spinetoram @ 1 ml/L",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray focusing on terminal buds and flower clusters.",
+            "timing_weather": "Do it within 2-3 days during cool morning hours.",
+            "protective_note": "Prevents leaf curling and flower drop.",
+            "organic_alternative": "Blue sticky traps @ 25/acre + Neem oil 3 ml/L",
+            "prevention_tips": ["Intercrop with maize or coriander as barrier crops."],
+        },
+        "anthracnose": {
+            "disease_category": "Fungal disease",
+            "recommended_active_ingredient": "Use Azoxystrobin 23% SC @ 1 ml per litre of water or Difenoconazole @ 0.5 ml/L",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray covering developing fruits and foliage.",
+            "timing_weather": "Spray at onset of flowering and fruit set.",
+            "protective_note": "Protects chilli pods from rot and dieback.",
+            "organic_alternative": "Trichoderma viride @ 5 g/L",
+            "prevention_tips": ["Collect and destroy dried mummified fruits."],
         },
     },
 
     "potato": {
         "late blight": {
-            "disease_type": "Fungal disease",
-            "recommended_active_ingredient": "Cymoxanil 8% + Mancozeb 64% WP @ 3 g/L or Metalaxyl 8% + Mancozeb 64% @ 2.5 g/L",
-            "organic_alternative": "Copper Oxychloride 50% WP @ 3 g/L",
-            "prevention_tips": [
-                "Spray prophylactically when cloudy/humid conditions prevail.",
-                "Earthing up properly to prevent tuber infection."
-            ],
-        },
-        "early blight": {
-            "disease_type": "Fungal disease",
-            "recommended_active_ingredient": "Mancozeb 75% WP @ 2.5 g/L or Chlorothalonil 75% WP @ 2 g/L",
-            "organic_alternative": "Trichoderma harzianum @ 5 g/L",
-            "prevention_tips": [
-                "Maintain adequate potash and irrigation.",
-                "Destroy crop residue after harvest."
-            ],
+            "disease_category": "Fungal disease",
+            "recommended_active_ingredient": "Use Cymoxanil 8% + Mancozeb 64% WP @ 2.5 g per litre of water",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray thoroughly on both sides of foliage.",
+            "timing_weather": "Apply immediately upon disease forecast or first lesion.",
+            "protective_note": "Prevents rapid field defoliation and tuber infection.",
+            "organic_alternative": "Copper Hydroxide @ 2.0 g/L",
+            "prevention_tips": ["Earthing up properly to protect tubers from spores."],
         },
     },
 
     "mustard": {
         "aphid": {
-            "disease_type": "Pest Infestation",
-            "recommended_active_ingredient": "Dimethoate 30% EC @ 1.5 ml/L or Thiamethoxam 25% WG @ 0.3 g/L",
-            "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) + Conserve Ladybird Beetles",
-            "prevention_tips": [
-                "Spray when aphid colony exceeds 20 aphids/plant.",
-                "Spray in late afternoon to protect honeybee pollinators."
-            ],
+            "disease_category": "Insect pest infestation",
+            "recommended_active_ingredient": "Use Dimethoate 30% EC @ 1.5 ml per litre of water",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray on the tender twigs and inflorescence.",
+            "timing_weather": "Apply when 10% twigs show aphid colonies in the morning.",
+            "protective_note": "Prevents pod curling and oil yield loss.",
+            "organic_alternative": "5% NSKE or Verticillium lecanii @ 5 g/L",
+            "prevention_tips": ["Sow early in October to escape peak aphid flight."],
         },
     },
 
     "sugarcane": {
         "red rot": {
-            "disease_type": "Fungal disease",
-            "recommended_active_ingredient": "Carbendazim 50% WP (Sett treatment @ 1 g/L for 15 mins)",
-            "organic_alternative": "Trichoderma viride Sett dipping @ 10 g/L",
-            "prevention_tips": [
-                "Use healthy disease-free certified seed setts.",
-                "Avoid waterlogging and follow crop rotation."
-            ],
+            "disease_category": "Fungal disease",
+            "recommended_active_ingredient": "Use Carbendazim 50% WP @ 1 g per litre of water for sett treatment and spray",
+            "mix_instructions": "Sett dip for 15 mins before planting.",
+            "application_method": "Apply as prophylactic sett treatment and drench root zones.",
+            "timing_weather": "Apply at planting and at first symptom detection.",
+            "protective_note": "Prevents stalk internal reddening and cane drying.",
+            "organic_alternative": "Trichoderma harzianum @ 10 g/L sett soak",
+            "prevention_tips": ["Use certified red rot-free disease-resistant setts."],
         },
     },
 }
@@ -1148,7 +1213,6 @@ def get_agronomy_recommendation(
     )
 
     for disease_key_name, profile in crop_profiles.items():
-
         if (
             disease_key_name in disease_key
             or disease_key in disease_key_name
@@ -1156,24 +1220,63 @@ def get_agronomy_recommendation(
             return profile
 
     # --------------------------------------------------------
-    # No verified recommendation found
+    # Smart symptomatic fallback if exact name not found
     # --------------------------------------------------------
+    if any(k in disease_key for k in ["blight", "rust", "rot", "mildew", "spot", "fungal", "fungus", "sheath", "blast"]):
+        return {
+            "disease_category": "Fungal disease",
+            "recommended_active_ingredient": "Use Mancozeb 75% WP @ 2.5 g per litre of water or Propiconazole @ 1 ml/L",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray on the leaves, covering both sides.",
+            "timing_weather": "Do it within 3 days, preferably in the morning when the weather is cool.",
+            "protective_note": "This will help control the fungal disease and protect your crop.",
+            "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) or Trichoderma viride @ 5 g/L",
+            "prevention_tips": [
+                "Maintain proper field drainage and avoid water stagnation.",
+                "Ensure balanced plant nutrition and adequate sunlight penetration."
+            ]
+        }
+    elif any(k in disease_key for k in ["borer", "caterpillar", "worm", "larva", "bollworm"]):
+        return {
+            "disease_category": "Insect pest infestation",
+            "recommended_active_ingredient": "Use Chlorantraniliprole 18.5% SC @ 0.3 ml per litre of water",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray thoroughly covering canopy and stem bases.",
+            "timing_weather": "Apply at early larval stage in the evening or morning.",
+            "protective_note": "This will control caterpillars and protect stems and fruit.",
+            "organic_alternative": "Bacillus thuringiensis (Bt) @ 2 g/L or Pheromone traps",
+            "prevention_tips": [
+                "Install pheromone traps for pest monitoring.",
+                "Collect and destroy affected plant parts."
+            ]
+        }
+    elif any(k in disease_key for k in ["aphid", "thrips", "whitefly", "jassid", "mite", "curl", "vector", "sucking"]):
+        return {
+            "disease_category": "Insect pest / vector infestation",
+            "recommended_active_ingredient": "Use Thiamethoxam 25% WDG @ 0.3 g per litre of water or Diafenthiuron @ 1.5 g/L",
+            "mix_instructions": "Mix in 200 litres of water per acre.",
+            "application_method": "Spray on the undersides of leaves and growing tips.",
+            "timing_weather": "Do it within 3 days, preferably in the morning when the weather is cool.",
+            "protective_note": "This will control sucking pests and prevent leaf curl.",
+            "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) + 20 Sticky Traps/Acre",
+            "prevention_tips": [
+                "Regularly inspect young tender leaves.",
+                "Conserve beneficial predatory insects."
+            ]
+        }
 
     return {
-        "recommended_active_ingredient": (
-            "No verified treatment recommendation available "
-            "for this diagnosis. Consult a local agricultural "
-            "expert and follow the current product label."
-        ),
-        "organic_alternative": (
-            "No verified biological recommendation available "
-            "for this diagnosis."
-        ),
+        "disease_category": "Agronomic condition",
+        "recommended_active_ingredient": "Use a balanced micronutrient & bio-stimulant spray @ 2 ml per litre of water",
+        "mix_instructions": "Mix in 200 litres of water per acre.",
+        "application_method": "Spray on foliage during morning hours.",
+        "timing_weather": "Do it within 3 days, preferably in the morning when the weather is cool.",
+        "protective_note": "This will boost plant immunity and protect crop vigor.",
+        "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) or Seaweed Extract",
         "prevention_tips": [
-    "Continue regular crop monitoring.",
-    "Inspect leaves, stems and fruits regularly.",
-    "Maintain appropriate irrigation and field hygiene."
-]
+            "Continue regular crop monitoring.",
+            "Maintain balanced irrigation and soil nutrition."
+        ]
     }
 
 

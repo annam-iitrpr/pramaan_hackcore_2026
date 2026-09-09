@@ -8,7 +8,6 @@ from backend.app.models.schemas import (
 )
 from backend.app.ai.validation_agent import validation_agent
 from backend.app.database.db import db
-from backend.app.database.mongodb import mongo_db
 
 router = APIRouter(prefix="/validation", tags=["Trust & Validation Agent"])
 
@@ -45,29 +44,24 @@ def verify_evidence(request: ValidationRequest):
     return result
 
 @router.get("/evidence", response_model=List[Dict[str, Any]])
-async def list_evidence(farm_id: Optional[str] = None, phone: Optional[str] = None):
+def list_evidence(farm_id: Optional[str] = None, phone: Optional[str] = None):
+    all_ev = db.get_all_evidence(farm_id)
     if phone:
-        return await mongo_db.get_farmer_logs(phone=phone)
-    if mongo_db.is_connected:
-        feed = await mongo_db.get_community_feed()
-        if feed:
-            return feed
-    return [e for e in db.get_all_evidence(farm_id) if e.get("farm_id") == farm_id] if farm_id else []
+        return [e for e in all_ev if e.get("farmer_phone") == phone]
+    if farm_id:
+        return [e for e in all_ev if e.get("farm_id") == farm_id]
+    return all_ev
 
 @router.get("/evidence/{evidence_id}", response_model=Dict[str, Any])
-async def get_single_evidence(evidence_id: str):
-    if mongo_db.is_connected and mongo_db.db is not None:
-        doc = await mongo_db.db.evidence_logs.find_one({"id": evidence_id}, {"_id": 0})
-        if doc:
-            return doc
+def get_single_evidence(evidence_id: str):
     ev = db.get_evidence_by_id(evidence_id)
     if not ev:
         raise HTTPException(status_code=404, detail="Evidence not found")
     return ev
 
 @router.post("/evidence/create", response_model=Dict[str, Any])
-async def create_evidence(item: Dict[str, Any]):
-    return await mongo_db.save_evidence_log(item)
+def create_evidence(item: Dict[str, Any]):
+    return db.add_evidence(item)
 
 @router.post("/learning-feedback")
 def submit_learning_feedback(feedback: Dict[str, Any]):

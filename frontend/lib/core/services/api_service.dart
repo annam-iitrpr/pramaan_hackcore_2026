@@ -6,6 +6,7 @@ import '../../models/farm_model.dart';
 import '../../models/product_model.dart';
 import '../../models/weather_model.dart';
 import '../../models/pricing_model.dart';
+import 'offline_storage_service.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -113,15 +114,9 @@ class ApiService {
 
   Future<EvidenceItem?> submitEvidence(Map<String, dynamic> payload) async {
     try {
-      // First persist directly to MongoDB farmer-db route
-      try {
-        await _postWithFallback("/farmer-db/log", payload, timeoutSec: 6);
-      } catch (_) {}
-
       final response = await _postWithFallback(
         "/validation/evidence/create",
         payload,
-        timeoutSec: 6,
       );
       return EvidenceItem.fromJson(jsonDecode(response.body));
     } catch (e) {
@@ -180,6 +175,209 @@ class ApiService {
     } catch (e) {
       return _fallbackPricing(quantityQuintals);
     }
+  }
+
+  // ============================================================
+  // MONGODB ATLAS & OFFLINE-FIRST INTEGRATION
+  // ============================================================
+
+  Future<Map<String, dynamic>> loginOrRegisterFarmer({
+    required String name,
+    required String phone,
+    String village = "Dindori, Nashik",
+    String state = "Maharashtra",
+    String crop = "Cotton (Bt-II)",
+    double acres = 12.5,
+  }) async {
+    final payload = {
+      "name": name,
+      "farmer_name": name,
+      "phone": phone,
+      "farmer_phone": phone,
+      "village": village,
+      "state": state,
+      "crop": crop,
+      "primary_crop": crop,
+      "acres": acres,
+      "timestamp": DateTime.now().toUtc().toIso8601String(),
+    };
+
+    try {
+      final response = await _postWithFallback("/farmer/auth", payload, timeoutSec: 5);
+      final data = jsonDecode(response.body);
+      if (data['status'] == 'success') {
+        if (data['logs'] is List) {
+          await OfflineStorageService().cacheFarmerLogs(
+            phone,
+            List<Map<String, dynamic>>.from(data['logs']),
+          );
+        }
+        return data;
+      }
+    } catch (e) {
+      debugPrint("[MongoDB API] Offline notice on farmer login: $e. Using local cache.");
+    }
+
+    // Offline Resilience Fallback
+    final cachedLogs = await OfflineStorageService().getCachedFarmerLogs(phone);
+    return {
+      "status": "success",
+      "is_new_farmer": false,
+      "farmer": {
+        "name": name,
+        "phone": phone,
+        "village": village,
+        "state": state,
+        "crop": crop,
+        "acres": acres,
+        "last_login": DateTime.now().toUtc().toIso8601String(),
+        "source": "offline_cache",
+      },
+      "logs": cachedLogs,
+    };
+  }
+
+  Future<Map<String, dynamic>> loginFarmerMongo({
+    String? name,
+    String? phone,
+    String? district,
+    String? village,
+    String? state,
+    String? crop,
+    dynamic acres,
+  }) async {
+    return loginOrRegisterFarmer(
+      name: name ?? "Kisan",
+      phone: phone ?? "",
+      village: village ?? "Dindori, Nashik",
+      state: state ?? "Maharashtra",
+      crop: crop ?? "Wheat",
+      acres: (acres is num) ? acres.toDouble() : double.tryParse(acres?.toString() ?? "5.0") ?? 5.0,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> fetchFarmerLogsMongo(String phone) async {
+    final cleanPhone = phone.trim();
+    try {
+      final encodedPhone = Uri.encodeComponent(cleanPhone);
+      final response = await _getWithFallback("/farmer/logs?phone=$encodedPhone", timeoutSec: 4);
+      final data = jsonDecode(response.body);
+      if (data['status'] == 'success' && data['logs'] is List) {
+        final logs = List<Map<String, dynamic>>.from(data['logs']);
+        await OfflineStorageService().cacheFarmerLogs(cleanPhone, logs);
+        return logs;
+      }
+    } catch (e) {
+      debugPrint("[MongoDB API] Fetch logs notice (falling back to offline cache): $e");
+    }
+
+    // Local offline cache fallback
+    return await OfflineStorageService().getCachedFarmerLogs(cleanPhone);
+  }
+
+  Future<List<Map<String, dynamic>>> fetchCommunityLogsMongo() async {
+    try {
+      final response = await _getWithFallback("/farmer/community-feed", timeoutSec: 4);
+      final data = jsonDecode(response.body);
+      if (data['status'] == 'success' && data['logs'] is List) {
+        final logs = List<Map<String, dynamic>>.from(data['logs']);
+        if (logs.isNotEmpty) {
+          await OfflineStorageService().cacheCommunityLogs(logs);
+        }
+        return logs;
+      }
+    } catch (e) {
+      debugPrint("[MongoDB API] Community feed notice (falling back to offline cache): $e");
+    }
+
+    return await OfflineStorageService().getCachedCommunityLogs();
+  }
+
+  Future<bool> logFarmerVoiceEntry({
+    required String farmerName,
+    required String farmerPhone,
+    required String village,
+    required String state,
+    required String crop,
+    required String actionType,
+    required String? productName,
+    required String? dosage,
+    required String? targetPest,
+    required String voiceTranscript,
+    required double complianceScore,
+    required String verificationStatus,
+    required String reportId,
+    required String hashAnchor,
+  }) async {
+    final payload = {
+      "timestamp": DateTime.now().toUtc().toIso8601String(),
+      "log_id": "LOG-${DateTime.now().millisecondsSinceEpoch}",
+      "id": "LOG-${DateTime.now().millisecondsSinceEpoch}",
+      "farmer_name": farmerName,
+      "farmer_phone": farmerPhone,
+      "village": village,
+      "state": state,
+      "crop": crop,
+      "crop_name": crop,
+      "action_type": actionType,
+      "evidence_type": actionType,
+      "product_name": productName ?? "Bio-Neem Power 10000 PPM",
+      "dosage": dosage ?? "400 ml in 200L Water / Acre",
+      "dosage_per_acre": dosage ?? "400 ml in 200L Water / Acre",
+      "target_pest": targetPest ?? "Whitefly",
+      "voice_transcript": voiceTranscript,
+      "description": voiceTranscript,
+      "compliance_score": complianceScore,
+      "verification_score": complianceScore,
+      "verification_status": verificationStatus,
+      "report_id": reportId,
+      "hash_anchor": hashAnchor,
+      "verification_hash": hashAnchor,
+    };
+
+    // Cache to local farmer logs immediately for instant UI update
+    final currentLogs = await OfflineStorageService().getCachedFarmerLogs(farmerPhone);
+    currentLogs.insert(0, payload);
+    await OfflineStorageService().cacheFarmerLogs(farmerPhone, currentLogs);
+
+    // Try posting to MongoDB
+    try {
+      final response = await _postWithFallback("/farmer/log-entry", payload, timeoutSec: 4);
+      if (response.statusCode == 200) {
+        debugPrint("[MongoDB API] Voice log successfully persisted to MongoDB Atlas!");
+        return true;
+      }
+    } catch (e) {
+      debugPrint("[MongoDB API] Notice: offline or unreachable ($e). Queued in offline store.");
+    }
+
+    // Save to offline pending queue for later automatic background sync
+    await OfflineStorageService().savePendingVoiceLog(payload);
+    return false;
+  }
+
+  Future<int> syncPendingOfflineLogs() async {
+    final pending = await OfflineStorageService().getPendingVoiceLogs();
+    if (pending.isEmpty) return 0;
+
+    debugPrint("[MongoDB API] Syncing ${pending.length} pending offline logs to MongoDB Atlas...");
+    try {
+      final response = await _postWithFallback("/farmer/sync-batch", {
+        "logs": pending,
+      }, timeoutSec: 10);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final syncedCount = data['synced_count'] as int? ?? pending.length;
+        await OfflineStorageService().clearPendingLogs();
+        debugPrint("[MongoDB API] Successfully synchronized $syncedCount offline logs with MongoDB Atlas!");
+        return syncedCount;
+      }
+    } catch (e) {
+      debugPrint("[MongoDB API] Batch sync notice (will retry on next connection window): $e");
+    }
+
+    return 0;
   }
 
   String getReportDownloadUrl(String pdfUrl) {
@@ -1271,7 +1469,28 @@ class ApiService {
     ),
   ];
 
-  List<EvidenceItem> _fallbackEvidence() => [];
+  List<EvidenceItem> _fallbackEvidence() => [
+    EvidenceItem(
+      id: "EV-2026-9901",
+      farmId: "farm-104",
+      cropName: "Wheat (PBW-826)",
+      cropStage: "Active Tillering",
+      evidenceType: "PRODUCT_SCAN",
+      timestamp: "2026-09-01 07:30 AM",
+      location: GeoLocation(
+        latitude: 30.9010,
+        longitude: 75.8573,
+        accuracyMeters: 2.5,
+      ),
+      verificationStatus: "VERIFIED",
+      verificationScore: 98.6,
+      productName: "Tilt 25% EC (Propiconazole)",
+      dosagePerAcre: "200 ml in 200L Clean Water",
+      title: "Tilt Propiconazole Verified",
+      description:
+          "PAU recommended systemic fungicide spray applied for yellow rust protection.",
+    ),
+  ];
 
   WeatherAdvisory _fallbackWeather({String? district}) {
     final dist = district ?? "Ludhiana";
@@ -1531,64 +1750,4 @@ class ApiService {
       genuineVerified: true,
     ),
   ];
-
-  // ========================================================
-  // MONGODB DATABASE METHODS
-  // ========================================================
-  Future<Map<String, dynamic>> loginFarmerMongo({
-    required String name,
-    required String phone,
-    String district = "Ludhiana",
-    String village = "Ludhiana",
-    String state = "Punjab",
-    String crop = "Wheat",
-    double acres = 4.5,
-  }) async {
-    final response = await _postWithFallback("/farmer-db/login", {
-      "name": name,
-      "phone": phone,
-      "district": district,
-      "village": village,
-      "state": state,
-      "primary_crop": crop,
-      "acres": acres,
-    }, timeoutSec: 6);
-    return jsonDecode(response.body);
-  }
-
-  Future<Map<String, dynamic>> syncBatchMongo({
-    required List<Map<String, dynamic>> logs,
-    String? phone,
-  }) async {
-    final response = await _postWithFallback("/farmer-db/sync-batch", {
-      "phone": phone,
-      "logs": logs,
-    }, timeoutSec: 10);
-    return jsonDecode(response.body);
-  }
-
-  Future<List<Map<String, dynamic>>> fetchFarmerLogsMongo(String phone) async {
-    final response = await _getWithFallback("/farmer-db/logs/$phone", timeoutSec: 5);
-    final data = jsonDecode(response.body);
-    if (data['status'] == 'success' && data['logs'] is List) {
-      return List<Map<String, dynamic>>.from(data['logs']);
-    }
-    return [];
-  }
-
-  Future<List<Map<String, dynamic>>> fetchCommunityLogsMongo({String? crop, String? district}) async {
-    String query = "";
-    if (crop != null && crop.isNotEmpty) query += "?crop=${Uri.encodeComponent(crop)}";
-    if (district != null && district.isNotEmpty) {
-      final sep = query.isEmpty ? "?" : "&";
-      query += "$sep""district=${Uri.encodeComponent(district)}";
-    }
-    final response = await _getWithFallback("/farmer-db/community$query", timeoutSec: 5);
-    final data = jsonDecode(response.body);
-    if (data['status'] == 'success' && data['records'] is List) {
-      return List<Map<String, dynamic>>.from(data['records']);
-    }
-    return [];
-  }
 }
-

@@ -19,12 +19,12 @@ class Settings:
         "GOOGLE_APPS_SCRIPT_URL",
         "https://script.google.com/macros/s/AKfycbyOODzqfRrLXNPV4BB7av2P4DncYniqln-Qy98CauxCsxeGiNe_zX1sF9_PmToi92QJ/exec"
     )
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     MONGODB_URI: str = os.getenv(
         "MONGODB_URI",
-        "mongodb://127.0.0.1:27017"
+        "mongodb://127.0.0.1:27017/pramaan_db"
     )
     MONGODB_DB_NAME: str = os.getenv("MONGODB_DB_NAME", "pramaan_db")
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     DATA_DIR: Path = Path(__file__).resolve().parent.parent / "data"
 
 settings = Settings()
