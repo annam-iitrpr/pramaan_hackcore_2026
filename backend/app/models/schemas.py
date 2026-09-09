@@ -134,6 +134,7 @@ class VisionAnalysisRequest(BaseModel):
     image_url: Optional[str] = None
     crop_type: Optional[str] = "Auto-Detect"
     plot_id: Optional[str] = "plot-01"
+    language: Optional[str] = "hi"
 
 
 

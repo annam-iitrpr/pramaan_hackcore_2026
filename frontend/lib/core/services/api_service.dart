@@ -16,6 +16,7 @@ class ApiService {
 
   final List<String> _backendHosts = [
     "http://127.0.0.1:8000/api/v1",
+    "http://172.26.15.17:8000/api/v1",
     "http://10.0.2.2:8000/api/v1",
     "http://172.19.12.37:8000/api/v1",
     "http://192.168.1.102:8000/api/v1",

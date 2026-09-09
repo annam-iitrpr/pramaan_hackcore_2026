@@ -57,156 +57,227 @@ SUPPORTED_CROPS = {
 AGRONOMY_KB: Dict[str, Dict[str, Dict[str, Any]]] = {
 
     "cotton": {
-        "cotton whitefly": {
-            "recommended_active_ingredient": (
-                "Use only locally approved whitefly management products "
-                "according to the current label and agricultural advisory."
-            ),
-            "organic_alternative": (
-                "Neem-based botanical management and yellow sticky traps "
-                "may be considered as part of integrated pest management."
-            ),
+        "whitefly": {
+            "disease_type": "Pest Infestation",
+            "recommended_active_ingredient": "Diafenthiuron 50% WP @ 1.5 g/L of water (Mix in 200 L/acre)",
+            "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) + 20 Yellow Sticky Traps/Acre",
             "prevention_tips": [
-                "Monitor the underside of leaves regularly.",
-                "Remove alternate weed hosts around field borders.",
-                "Use integrated pest management rather than repeated insecticide applications."
+                "Spray on the leaves, covering the underside where whiteflies hide.",
+                "Do it within 2-3 days, preferably in the morning or late evening.",
+                "Avoid excessive nitrogen fertilizer and remove border weeds."
             ],
-        }
+        },
+        "pink bollworm": {
+            "disease_type": "Pest Infestation",
+            "recommended_active_ingredient": "Emamectin Benzoate 5% SG @ 0.5 g/L of water (Mix in 200 L/acre)",
+            "organic_alternative": "Install 5-8 Pheromone Traps/Acre (Gossyplure lure)",
+            "prevention_tips": [
+                "Spray when moth catches exceed 8 moths/trap for 3 consecutive days.",
+                "Do it in early morning when winds are calm.",
+                "Destroy rosette flowers and pick dropped bolls."
+            ],
+        },
     },
 
     "wheat": {
         "yellow rust": {
-            "recommended_active_ingredient": (
-                "Use a locally registered fungicide recommended for wheat "
-                "yellow rust according to the product label and local agricultural advisory."
-            ),
-            "organic_alternative": (
-                "Use resistant varieties and integrated disease-management practices."
-            ),
+            "disease_type": "Fungal disease",
+            "recommended_active_ingredient": "Propiconazole 25% EC @ 1 ml per litre of water (Mix in 200 L/acre)",
+            "organic_alternative": "Use resistant varieties (e.g. PBW-826, HD-3086) & Trichoderma viride",
             "prevention_tips": [
-                "Monitor fields during cool and humid weather.",
-                "Prefer locally recommended rust-resistant varieties."
+                "Spray on the leaves, covering both sides thoroughly.",
+                "Do it within 3 days, preferably in the morning when the weather is cool.",
+                "Monitor fields closely during cool, cloudy, and humid days."
             ],
-        }
+        },
+        "stripe rust": {
+            "disease_type": "Fungal disease",
+            "recommended_active_ingredient": "Propiconazole 25% EC @ 1 ml per litre of water (Mix in 200 L/acre)",
+            "organic_alternative": "Use certified rust-resistant seed varieties & Trichoderma foliar spray",
+            "prevention_tips": [
+                "Spray on the leaves, covering both sides thoroughly.",
+                "Do it within 3 days, preferably in the morning when the weather is cool.",
+                "Avoid late sowing and maintain balanced potash application."
+            ],
+        },
+        "loose smut": {
+            "disease_type": "Fungal disease",
+            "recommended_active_ingredient": "Tebuconazole 2% DS (Seed Treatment @ 1.5 g/kg seed) or Carbendazim 50% WP @ 1 g/L",
+            "organic_alternative": "Solar heat seed treatment in May-June before sowing",
+            "prevention_tips": [
+                "Rogue out and destroy infected smutted ears in plastic bags.",
+                "Use certified disease-free seeds."
+            ],
+        },
     },
 
     "tomato": {
         "early blight": {
-            "recommended_active_ingredient": (
-                "Use a locally registered fungicide recommended for tomato early blight "
-                "according to the current label and agricultural advisory."
-            ),
-            "organic_alternative": (
-                "Use sanitation, removal of heavily infected leaves, crop rotation, "
-                "and approved biological disease-management products."
-            ),
+            "disease_type": "Fungal disease",
+            "recommended_active_ingredient": "Mancozeb 75% WP @ 2.5 g/L or Azoxystrobin @ 1 ml/L (Mix in 150 L/acre)",
+            "organic_alternative": "Neem Oil 5 ml/L + Trichoderma harzianum @ 5 g/L",
             "prevention_tips": [
-                "Avoid prolonged leaf wetness and unnecessary overhead irrigation.",
-                "Remove severely infected plant material from the field."
+                "Spray on the foliage covering lower and middle leaves thoroughly.",
+                "Do it within 3 days in the early morning.",
+                "Prune bottom leaves touching the soil and avoid overhead irrigation."
             ],
-        }
+        },
+        "late blight": {
+            "disease_type": "Fungal disease",
+            "recommended_active_ingredient": "Dimethomorph 50% WP @ 1 g/L + Mancozeb 75% WP @ 2 g/L",
+            "organic_alternative": "Copper Oxychloride 50% WP @ 2.5 g/L",
+            "prevention_tips": [
+                "Spray immediately at the first sign of water-soaked lesions.",
+                "Ensure proper row spacing for sunlight and air circulation."
+            ],
+        },
+        "leaf curl": {
+            "disease_type": "Viral disease (Whitefly vector)",
+            "recommended_active_ingredient": "Acetamiprid 20% SP @ 0.5 g/L or Imidacloprid 17.8% SL @ 0.5 ml/L",
+            "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) + Yellow Sticky Traps (25/Acre)",
+            "prevention_tips": [
+                "Control whitefly vector before flower onset.",
+                "Remove and bury severely stunted plants immediately."
+            ],
+        },
     },
 
     "chilli": {
         "leaf curl": {
-            "recommended_active_ingredient": (
-                "Management should target the vector and follow locally approved "
-                "integrated pest-management recommendations."
-            ),
-            "organic_alternative": (
-                "Neem-based botanical products and approved sticky traps can be "
-                "considered as part of integrated pest management."
-            ),
+            "disease_type": "Viral disease (Thrips/Mite vector)",
+            "recommended_active_ingredient": "Diafenthiuron 50% WP @ 1.5 g/L or Fipronil 5% SC @ 2 ml/L",
+            "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) + 20 Blue & Yellow Sticky Traps/Acre",
             "prevention_tips": [
-                "Monitor young leaves and terminal shoots frequently.",
-                "Control vector populations using integrated pest-management practices."
+                "Spray on the leaves, covering the underside and growing tips.",
+                "Do it within 2-3 days, preferably in early morning when calm.",
+                "Avoid moisture stress and remove border weeds."
             ],
-        }
+        },
+        "thrips": {
+            "disease_type": "Pest Infestation",
+            "recommended_active_ingredient": "Spinetoram 11.7% SC @ 1 ml/L or Fipronil 5% SC @ 2 ml/L",
+            "organic_alternative": "Blue Sticky Traps @ 25 traps/acre + Neem oil spray 5 ml/L",
+            "prevention_tips": [
+                "Spray early in the morning when thrips are active on flowers.",
+                "Use protective border crops like Maize or Sorghum."
+            ],
+        },
+        "anthracnose": {
+            "disease_type": "Fungal disease (Fruit Rot)",
+            "recommended_active_ingredient": "Azoxystrobin 18.2% + Difenoconazole 11.4% SC @ 1 ml/L",
+            "organic_alternative": "Trichoderma viride @ 5 g/L + Copper Hydroxide @ 2 g/L",
+            "prevention_tips": [
+                "Spray thoroughly covering fruits and foliage before rain showers.",
+                "Remove infected chilli pods from the field."
+            ],
+        },
     },
 
     "paddy": {
-        "leaf blast": {
-            "recommended_active_ingredient": (
-                "Use a locally registered rice blast-management fungicide "
-                "according to the current label and local agricultural advisory."
-            ),
-            "organic_alternative": (
-                "Use approved biological disease-management products and "
-                "integrated crop-management practices."
-            ),
+        "sheath blight": {
+            "disease_type": "Fungal disease",
+            "recommended_active_ingredient": "Hexaconazole 5% EC @ 2 ml/L or Validamycin 3% L @ 2.5 ml/L (Mix in 200 L/acre)",
+            "organic_alternative": "Pseudomonas fluorescens @ 10 g/L or Trichoderma viride @ 5 g/L",
             "prevention_tips": [
-                "Avoid excessive nitrogen application.",
-                "Monitor fields during prolonged humid conditions."
+                "Spray targeted at the lower leaf sheaths and base of stems.",
+                "Do it within 3 days, preferably in the morning when calm.",
+                "Avoid excess urea application and maintain optimal water level."
             ],
-        }
+        },
+        "blast": {
+            "disease_type": "Fungal disease (Pyricularia oryzae)",
+            "recommended_active_ingredient": "Tricyclazole 75% WP @ 0.6 g/L or Isoprothiolane 40% EC @ 1.5 ml/L",
+            "organic_alternative": "Pseudomonas fluorescens @ 10 g/L foliar spray",
+            "prevention_tips": [
+                "Spray at tillering and panicle emergence stage.",
+                "Avoid split application of excess nitrogen."
+            ],
+        },
+        "brown spot": {
+            "disease_type": "Fungal disease",
+            "recommended_active_ingredient": "Mancozeb 75% WP @ 2.5 g/L or Carbendazim @ 1 g/L",
+            "organic_alternative": "Neem cake soil application + Trichoderma seed treatment",
+            "prevention_tips": [
+                "Correct soil nutrient deficiencies especially potash and zinc.",
+                "Ensure proper seed treatment before nursery sowing."
+            ],
+        },
     },
 
     "rice": {
-        "leaf blast": {
-            "recommended_active_ingredient": (
-                "Use a locally registered rice blast-management fungicide "
-                "according to the current label and local agricultural advisory."
-            ),
-            "organic_alternative": (
-                "Use approved biological disease-management products and "
-                "integrated crop-management practices."
-            ),
+        "sheath blight": {
+            "disease_type": "Fungal disease",
+            "recommended_active_ingredient": "Hexaconazole 5% EC @ 2 ml/L or Validamycin 3% L @ 2.5 ml/L (Mix in 200 L/acre)",
+            "organic_alternative": "Pseudomonas fluorescens @ 10 g/L or Trichoderma viride @ 5 g/L",
             "prevention_tips": [
-                "Avoid excessive nitrogen application.",
-                "Monitor fields during prolonged humid conditions."
+                "Spray targeted at the lower leaf sheaths and base of stems.",
+                "Do it within 3 days, preferably in the morning when calm.",
+                "Avoid excess urea application and maintain optimal water level."
             ],
-        }
+        },
+        "blast": {
+            "disease_type": "Fungal disease (Pyricularia oryzae)",
+            "recommended_active_ingredient": "Tricyclazole 75% WP @ 0.6 g/L or Isoprothiolane 40% EC @ 1.5 ml/L",
+            "organic_alternative": "Pseudomonas fluorescens @ 10 g/L foliar spray",
+            "prevention_tips": [
+                "Spray at tillering and panicle emergence stage.",
+                "Avoid split application of excess nitrogen."
+            ],
+        },
+        "brown spot": {
+            "disease_type": "Fungal disease",
+            "recommended_active_ingredient": "Mancozeb 75% WP @ 2.5 g/L or Carbendazim @ 1 g/L",
+            "organic_alternative": "Neem cake soil application + Trichoderma seed treatment",
+            "prevention_tips": [
+                "Correct soil nutrient deficiencies especially potash and zinc.",
+                "Ensure proper seed treatment before nursery sowing."
+            ],
+        },
     },
 
     "potato": {
         "late blight": {
-            "recommended_active_ingredient": (
-                "Use a locally registered potato late-blight management fungicide "
-                "according to the current label and local agricultural advisory."
-            ),
-            "organic_alternative": (
-                "Use approved copper-based or biological disease-management "
-                "options where appropriate and permitted."
-            ),
+            "disease_type": "Fungal disease",
+            "recommended_active_ingredient": "Cymoxanil 8% + Mancozeb 64% WP @ 3 g/L or Metalaxyl 8% + Mancozeb 64% @ 2.5 g/L",
+            "organic_alternative": "Copper Oxychloride 50% WP @ 3 g/L",
             "prevention_tips": [
-                "Monitor crops closely during cool, wet and humid weather.",
-                "Remove severely infected plant material according to local guidance."
+                "Spray prophylactically when cloudy/humid conditions prevail.",
+                "Earthing up properly to prevent tuber infection."
             ],
-        }
+        },
+        "early blight": {
+            "disease_type": "Fungal disease",
+            "recommended_active_ingredient": "Mancozeb 75% WP @ 2.5 g/L or Chlorothalonil 75% WP @ 2 g/L",
+            "organic_alternative": "Trichoderma harzianum @ 5 g/L",
+            "prevention_tips": [
+                "Maintain adequate potash and irrigation.",
+                "Destroy crop residue after harvest."
+            ],
+        },
     },
 
     "mustard": {
         "aphid": {
-            "recommended_active_ingredient": (
-                "Use a locally registered mustard aphid-management product "
-                "according to the current label and local agricultural advisory."
-            ),
-            "organic_alternative": (
-                "Neem-based botanical management and conservation of natural "
-                "aphid predators can be used as part of integrated pest management."
-            ),
+            "disease_type": "Pest Infestation",
+            "recommended_active_ingredient": "Dimethoate 30% EC @ 1.5 ml/L or Thiamethoxam 25% WG @ 0.3 g/L",
+            "organic_alternative": "5% Neem Seed Kernel Extract (NSKE) + Conserve Ladybird Beetles",
             "prevention_tips": [
-                "Regularly inspect flowering and tender shoots.",
-                "Conserve beneficial insects such as ladybird beetles."
+                "Spray when aphid colony exceeds 20 aphids/plant.",
+                "Spray in late afternoon to protect honeybee pollinators."
             ],
-        }
+        },
     },
 
     "sugarcane": {
         "red rot": {
-            "recommended_active_ingredient": (
-                "Management should follow local sugarcane disease-management "
-                "recommendations and use only registered products where applicable."
-            ),
-            "organic_alternative": (
-                "Use approved Trichoderma-based biological management and "
-                "healthy planting material."
-            ),
+            "disease_type": "Fungal disease",
+            "recommended_active_ingredient": "Carbendazim 50% WP (Sett treatment @ 1 g/L for 15 mins)",
+            "organic_alternative": "Trichoderma viride Sett dipping @ 10 g/L",
             "prevention_tips": [
-                "Use healthy disease-free planting material.",
-                "Remove severely infected clumps according to local recommendations."
+                "Use healthy disease-free certified seed setts.",
+                "Avoid waterlogging and follow crop rotation."
             ],
-        }
+        },
     },
 }
 
