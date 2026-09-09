@@ -36,6 +36,7 @@ import 'screens/settings_screen.dart';
 import 'screens/notifications_screen.dart';
 import 'screens/trust_validation_screen.dart';
 import 'screens/community_logs_screen.dart';
+import 'screens/agri_store_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -96,6 +97,7 @@ class PramaanApp extends StatelessWidget {
         '/notifications': (context) => const NotificationsScreen(),
         '/trust_validation': (context) => const TrustValidationScreen(),
         '/community_logs': (context) => const CommunityLogsScreen(),
+        '/agri_store': (context) => const AgriStoreScreen(),
       },
     );
   }

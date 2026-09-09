@@ -1166,7 +1166,7 @@ class _VoiceLogScreenState extends State<VoiceLogScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: const CustomBottomNav(currentIndex: 1),
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 4),
     );
   }
 
