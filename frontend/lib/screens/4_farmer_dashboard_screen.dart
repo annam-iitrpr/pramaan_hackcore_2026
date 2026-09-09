@@ -245,7 +245,11 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                 children: [
                   Expanded(
                     child: _buildQuickActionCard(
-                      title: AppTranslations.tr(lang, "voice_log", "Voice Log"),
+                      title: AppTranslations.tr(
+                        lang,
+                        "voice_log_title",
+                        "Voice Log",
+                      ),
                       icon: Icons.mic_rounded,
                       onTap: () => Navigator.pushNamed(context, '/voice_log'),
                     ),
@@ -726,24 +730,6 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
     required IconData icon,
     required VoidCallback onTap,
   }) {
-    // Split title into two lines
-    String firstLine = title;
-    String secondLine = '';
-
-    if (title == "Voice Log") {
-      firstLine = "Voice";
-      secondLine = "Log";
-    } else if (title == "Crop Camera") {
-      firstLine = "Crop";
-      secondLine = "Camera";
-    } else if (title == "Scan Bottle") {
-      firstLine = "Scan";
-      secondLine = "Bottle";
-    } else if (title == "New Spray Log" || title == "Spray Log") {
-      firstLine = "Spray";
-      secondLine = "Log";
-    }
-
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(16),
@@ -752,14 +738,14 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
         borderRadius: BorderRadius.circular(16),
         child: Container(
           height: 82,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
             color: const Color(0xFFF8FAF9),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: const Color(0xFFE8EFEB), width: 1),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF047857).withOpacity(0.06),
+                color: const Color(0xFF047857).withValues(alpha: 0.06),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
@@ -769,8 +755,8 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
             children: [
               // Icon
               Container(
-                width: 44,
-                height: 44,
+                width: 42,
+                height: 42,
                 decoration: const BoxDecoration(
                   color: Color(0xFFE8F8F1),
                   shape: BoxShape.circle,
@@ -778,35 +764,21 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                 child: Icon(icon, color: const Color(0xFF047857), size: 21),
               ),
 
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
 
-              // Two-line title
+              // Multi-line responsive title
               Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      firstLine,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                    Text(
-                      secondLine,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  softWrap: true,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0F172A),
+                    height: 1.22,
+                  ),
                 ),
               ),
 
@@ -814,7 +786,7 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
               const Icon(
                 Icons.chevron_right_rounded,
                 color: Color(0xFF94A3B8),
-                size: 20,
+                size: 18,
               ),
             ],
           ),
