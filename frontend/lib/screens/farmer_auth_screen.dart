@@ -4,6 +4,7 @@ import '../core/theme/app_colors.dart';
 import '../core/providers/auth_provider.dart';
 import '../core/providers/farm_provider.dart';
 import '../core/providers/evidence_provider.dart';
+import '../core/services/api_service.dart';
 import '../core/services/google_sheets_service.dart';
 import '../core/localization/app_translations.dart';
 
@@ -89,15 +90,49 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
     final evProv = Provider.of<EvidenceProvider>(context, listen: false);
     final farmProv = Provider.of<FarmProvider>(context, listen: false);
 
-    // 1. Live Google Sheets Webhook Sync (Farmers Tab)
+    // 1. Live MongoDB Atlas Authentication & Profile Retrieval
+    String actualName = name;
+    String actualPhone = phone;
+    String actualVillage = finalVillage;
+    String actualState = finalState;
+    String actualCrop = finalCrop;
+    double actualAcres = finalAcres;
+
     try {
-      final res = await GoogleSheetsService().loginOrRegisterFarmer(
+      final mongoRes = await ApiService().loginFarmerMongo(
         name: name,
         phone: phone,
+        district: finalVillage,
         village: finalVillage,
         state: finalState,
         crop: finalCrop,
         acres: finalAcres,
+      );
+
+      debugPrint("[Farmer Auth] MongoDB Atlas login result: $mongoRes");
+
+      if (mongoRes['farmer'] != null) {
+        final f = mongoRes['farmer'];
+        actualName = f['name']?.toString() ?? name;
+        actualPhone = f['phone']?.toString() ?? phone;
+        actualVillage = (f['district'] ?? f['village'])?.toString() ?? finalVillage;
+        actualState = f['state']?.toString() ?? finalState;
+        actualCrop = (f['primary_crop'] ?? f['crop'])?.toString() ?? finalCrop;
+        actualAcres = (f['farm_size_acres'] ?? f['acres'] as num?)?.toDouble() ?? finalAcres;
+      }
+    } catch (mongoErr) {
+      debugPrint("[Farmer Auth] MongoDB direct call note: $mongoErr");
+    }
+
+    // 2. Google Sheets Hybrid Sync (Farmers Tab)
+    try {
+      final res = await GoogleSheetsService().loginOrRegisterFarmer(
+        name: actualName,
+        phone: actualPhone,
+        village: actualVillage,
+        state: actualState,
+        crop: actualCrop,
+        acres: actualAcres,
       );
 
       debugPrint("[Farmer Auth] Google Sheets result: $res");
@@ -113,49 +148,21 @@ class _FarmerAuthScreenState extends State<FarmerAuthScreen> {
         }
         return;
       }
-
-      if (res['farmer'] != null) {
-        final f = res['farmer'];
-        final actualName = f['name']?.toString() ?? name;
-        final actualPhone = f['phone']?.toString() ?? phone;
-        final actualVillage = f['village']?.toString() ?? finalVillage;
-        final actualState = f['state']?.toString() ?? finalState;
-        final actualCrop = f['crop']?.toString() ?? finalCrop;
-        final actualAcres = (f['acres'] as num?)?.toDouble() ?? finalAcres;
-
-        auth.loginFarmer(
-          name: actualName,
-          phone: actualPhone,
-          village: actualVillage,
-          state: actualState,
-          crop: actualCrop,
-          acres: actualAcres,
-        );
-
-        evProv.setActiveFarmer(phone: actualPhone, name: actualName);
-      } else {
-        auth.loginFarmer(
-          name: name,
-          phone: phone,
-          village: finalVillage,
-          state: finalState,
-          crop: finalCrop,
-          acres: finalAcres,
-        );
-        evProv.setActiveFarmer(phone: phone, name: name);
-      }
     } catch (e) {
-      debugPrint("[Farmer Auth] Sync warning: $e");
-      auth.loginFarmer(
-        name: name,
-        phone: phone,
-        village: finalVillage,
-        state: finalState,
-        crop: finalCrop,
-        acres: finalAcres,
-      );
-      evProv.setActiveFarmer(phone: phone, name: name);
+      debugPrint("[Farmer Auth] Sheet sync note: $e");
     }
+
+    // Set authenticated state in AuthProvider and EvidenceProvider
+    auth.loginFarmer(
+      name: actualName,
+      phone: actualPhone,
+      village: actualVillage,
+      state: actualState,
+      crop: actualCrop,
+      acres: actualAcres,
+    );
+
+    evProv.setActiveFarmer(phone: actualPhone, name: actualName);
 
     // Match farm if available
     try {

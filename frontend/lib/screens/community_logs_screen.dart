@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import '../core/theme/app_colors.dart';
 import '../core/providers/auth_provider.dart';
 import '../core/localization/app_translations.dart';
+import '../core/services/api_service.dart';
 import '../core/services/google_sheets_service.dart';
 import '../core/services/pdf_download_service.dart';
+import '../core/services/offline_storage_service.dart';
 import '../models/evidence_model.dart';
 import '../widgets/custom_bottom_nav.dart';
 
@@ -16,6 +18,7 @@ class CommunityLogsScreen extends StatefulWidget {
 }
 
 class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
+  final ApiService _apiService = ApiService();
   final GoogleSheetsService _sheetsService = GoogleSheetsService();
   final PdfDownloadService _pdfService = PdfDownloadService();
   final TextEditingController _searchController = TextEditingController();
@@ -31,7 +34,7 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchLiveSheetLogs();
+    _fetchLiveLogs();
   }
 
   @override
@@ -40,28 +43,47 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
     super.dispose();
   }
 
-  Future<void> _fetchLiveSheetLogs() async {
+  Future<void> _fetchLiveLogs() async {
     setState(() => _isLoading = true);
+    List<Map<String, dynamic>> logs = [];
+
+    // 1. Fetch real-time public logs from MongoDB Atlas
     try {
-      final logs = await _sheetsService.fetchAllCommunityLogs();
-      if (mounted) {
-        setState(() {
-          _sheetLogs = logs;
-          _isLoading = false;
-          _isLoadedFromCache = logs.isNotEmpty;
-          // Reset filters if previous selection not in new data
-          if (!_availableCrops.contains(_selectedCrop)) _selectedCrop = "All";
-          if (!_availableRegions.contains(_selectedRegion)) _selectedRegion = "All";
-        });
+      final mongoLogs = await _apiService.fetchCommunityLogsMongo();
+      if (mongoLogs.isNotEmpty) {
+        logs = mongoLogs;
+        await OfflineStorageService().cacheCommunityLogs(logs);
       }
     } catch (e) {
-      debugPrint("[CommunityLogsScreen] Error loading live sheet logs: $e");
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _isLoadedFromCache = true;
-        });
+      debugPrint("[CommunityLogsScreen] MongoDB fetch note: $e");
+    }
+
+    // 2. Fallback to Google Sheets if MongoDB returned empty
+    if (logs.isEmpty) {
+      try {
+        final sheetLogs = await _sheetsService.fetchAllCommunityLogs();
+        if (sheetLogs.isNotEmpty) {
+          logs = sheetLogs;
+        }
+      } catch (e) {
+        debugPrint("[CommunityLogsScreen] Google Sheets fetch note: $e");
       }
+    }
+
+    // 3. Fallback to local offline cache
+    if (logs.isEmpty) {
+      logs = await OfflineStorageService().getCachedCommunityLogs();
+    }
+
+    if (mounted) {
+      setState(() {
+        _sheetLogs = logs;
+        _isLoading = false;
+        _isLoadedFromCache = logs.isNotEmpty;
+        // Reset filters if previous selection not in new data
+        if (!_availableCrops.contains(_selectedCrop)) _selectedCrop = "All";
+        if (!_availableRegions.contains(_selectedRegion)) _selectedRegion = "All";
+      });
     }
   }
 
@@ -437,7 +459,7 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: "Refresh from Google Sheet",
+            tooltip: "Refresh from Database",
             icon: _isLoading
                 ? const SizedBox(
                     width: 18,
@@ -445,7 +467,7 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                   )
                 : const Icon(Icons.refresh_rounded, color: AppColors.primary),
-            onPressed: _isLoading ? null : _fetchLiveSheetLogs,
+            onPressed: _isLoading ? null : _fetchLiveLogs,
           ),
           IconButton(
             tooltip: AppTranslations.tr(lang, "select_language"),
@@ -471,7 +493,7 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _fetchLiveSheetLogs,
+        onRefresh: _fetchLiveLogs,
         color: AppColors.primary,
         child: Column(
           children: [
@@ -497,14 +519,14 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
             // Clean Dropdown Filter Bar
             _buildDropdownFilterBar(lang),
 
-            // Live Sheets Logs Count Header
+            // Live Database Logs Count Header
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${AppTranslations.tr(lang, "google_sheet_records", "Google Sheet Records")} (${logs.length})",
+                    "${AppTranslations.tr(lang, "database_community_records", "Live Verified Database Records")} (${logs.length})",
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -540,7 +562,7 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
                           const CircularProgressIndicator(color: AppColors.primary),
                           const SizedBox(height: 12),
                           Text(
-                            AppTranslations.tr(lang, "loading_sheet_records", "Loading records from Google Sheet..."),
+                            AppTranslations.tr(lang, "loading_records", "Loading live records from database..."),
                             style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                           ),
                         ],

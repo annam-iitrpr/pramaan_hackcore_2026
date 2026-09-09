@@ -113,9 +113,15 @@ class ApiService {
 
   Future<EvidenceItem?> submitEvidence(Map<String, dynamic> payload) async {
     try {
+      // First persist directly to MongoDB farmer-db route
+      try {
+        await _postWithFallback("/farmer-db/log", payload, timeoutSec: 6);
+      } catch (_) {}
+
       final response = await _postWithFallback(
         "/validation/evidence/create",
         payload,
+        timeoutSec: 6,
       );
       return EvidenceItem.fromJson(jsonDecode(response.body));
     } catch (e) {
@@ -1265,28 +1271,7 @@ class ApiService {
     ),
   ];
 
-  List<EvidenceItem> _fallbackEvidence() => [
-    EvidenceItem(
-      id: "EV-2026-9901",
-      farmId: "farm-104",
-      cropName: "Wheat (PBW-826)",
-      cropStage: "Active Tillering",
-      evidenceType: "PRODUCT_SCAN",
-      timestamp: "2026-09-01 07:30 AM",
-      location: GeoLocation(
-        latitude: 30.9010,
-        longitude: 75.8573,
-        accuracyMeters: 2.5,
-      ),
-      verificationStatus: "VERIFIED",
-      verificationScore: 98.6,
-      productName: "Tilt 25% EC (Propiconazole)",
-      dosagePerAcre: "200 ml in 200L Clean Water",
-      title: "Tilt Propiconazole Verified",
-      description:
-          "PAU recommended systemic fungicide spray applied for yellow rust protection.",
-    ),
-  ];
+  List<EvidenceItem> _fallbackEvidence() => [];
 
   WeatherAdvisory _fallbackWeather({String? district}) {
     final dist = district ?? "Ludhiana";
@@ -1546,4 +1531,64 @@ class ApiService {
       genuineVerified: true,
     ),
   ];
+
+  // ========================================================
+  // MONGODB DATABASE METHODS
+  // ========================================================
+  Future<Map<String, dynamic>> loginFarmerMongo({
+    required String name,
+    required String phone,
+    String district = "Ludhiana",
+    String village = "Ludhiana",
+    String state = "Punjab",
+    String crop = "Wheat",
+    double acres = 4.5,
+  }) async {
+    final response = await _postWithFallback("/farmer-db/login", {
+      "name": name,
+      "phone": phone,
+      "district": district,
+      "village": village,
+      "state": state,
+      "primary_crop": crop,
+      "acres": acres,
+    }, timeoutSec: 6);
+    return jsonDecode(response.body);
+  }
+
+  Future<Map<String, dynamic>> syncBatchMongo({
+    required List<Map<String, dynamic>> logs,
+    String? phone,
+  }) async {
+    final response = await _postWithFallback("/farmer-db/sync-batch", {
+      "phone": phone,
+      "logs": logs,
+    }, timeoutSec: 10);
+    return jsonDecode(response.body);
+  }
+
+  Future<List<Map<String, dynamic>>> fetchFarmerLogsMongo(String phone) async {
+    final response = await _getWithFallback("/farmer-db/logs/$phone", timeoutSec: 5);
+    final data = jsonDecode(response.body);
+    if (data['status'] == 'success' && data['logs'] is List) {
+      return List<Map<String, dynamic>>.from(data['logs']);
+    }
+    return [];
+  }
+
+  Future<List<Map<String, dynamic>>> fetchCommunityLogsMongo({String? crop, String? district}) async {
+    String query = "";
+    if (crop != null && crop.isNotEmpty) query += "?crop=${Uri.encodeComponent(crop)}";
+    if (district != null && district.isNotEmpty) {
+      final sep = query.isEmpty ? "?" : "&";
+      query += "$sep""district=${Uri.encodeComponent(district)}";
+    }
+    final response = await _getWithFallback("/farmer-db/community$query", timeoutSec: 5);
+    final data = jsonDecode(response.body);
+    if (data['status'] == 'success' && data['records'] is List) {
+      return List<Map<String, dynamic>>.from(data['records']);
+    }
+    return [];
+  }
 }
+

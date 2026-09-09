@@ -867,6 +867,8 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
   Widget _buildRecentActivitiesList(EvidenceProvider evProv, String lang) {
     if (evProv.evidenceList.isEmpty) {
       return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
@@ -874,49 +876,32 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
         ),
         child: Column(
           children: [
-            _buildActivityItem(
-              title: AppTranslations.tr(
-                lang,
-                "voice_log_added_title",
-                "Voice Log Added",
-              ),
-              subtitle: AppTranslations.tr(
-                lang,
-                "voice_log_added_sub",
-                "Insecticide spray on cotton field",
-              ),
-              time: AppTranslations.tr(
-                lang,
-                "time_today_morning",
-                "Today, 8:30 AM",
-              ),
-              icon: Icons.mic_rounded,
-              onTap: () => Navigator.pushNamed(context, '/evidence_review'),
+            const Icon(Icons.note_alt_outlined, size: 36, color: AppColors.textMuted),
+            const SizedBox(height: 8),
+            Text(
+              AppTranslations.tr(lang, "no_logs_yet", "No field logs recorded yet"),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
-            const Divider(
-              height: 1,
-              indent: 56,
-              endIndent: 16,
-              color: Color(0xFFF1F5F9),
+            const SizedBox(height: 4),
+            Text(
+              AppTranslations.tr(lang, "start_logging_sub", "Record your first spray or crop scan to generate verified database records."),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
-            _buildActivityItem(
-              title: AppTranslations.tr(
-                lang,
-                "crop_photo_captured_title",
-                "Crop Photo Captured",
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF047857),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
-              subtitle: AppTranslations.tr(
-                lang,
-                "crop_photo_captured_sub",
-                "AI analysis completed",
+              icon: const Icon(Icons.mic_rounded, size: 18),
+              label: Text(
+                AppTranslations.tr(lang, "record_voice_log", "Record Voice Log"),
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
               ),
-              time: AppTranslations.tr(
-                lang,
-                "time_today_earlier",
-                "Today, 7:45 AM",
-              ),
-              icon: Icons.camera_alt_rounded,
-              onTap: () => Navigator.pushNamed(context, '/evidence_review'),
+              onPressed: () => Navigator.pushNamed(context, '/voice_log'),
             ),
           ],
         ),

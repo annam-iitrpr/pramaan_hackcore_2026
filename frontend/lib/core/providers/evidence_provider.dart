@@ -73,7 +73,7 @@ class EvidenceProvider extends ChangeNotifier {
   String get selectedFilter => _selectedFilter;
 
   EvidenceProvider() {
-    loadEvidence();
+    // Initialized clean without dummy seeds
   }
 
   void setActiveFarmer({required String phone, required String name}) {
@@ -88,43 +88,50 @@ class EvidenceProvider extends ChangeNotifier {
   }
 
   Future<void> loadEvidence() async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      _evidenceList = await _api.fetchEvidence();
-    } catch (_) {}
-    _isLoading = false;
-    notifyListeners();
+    if (_activeFarmerPhone != null && _activeFarmerPhone!.isNotEmpty) {
+      await loadEvidenceForFarmer(phone: _activeFarmerPhone!, name: _activeFarmerName ?? '');
+    }
   }
 
   Future<void> loadEvidenceForFarmer({
     required String phone,
     required String name,
   }) async {
-    _activeFarmerPhone = phone.trim();
-    _activeFarmerName = name.trim();
+    final cleanPhone = phone.trim();
+    final cleanName = name.trim();
+    _activeFarmerPhone = cleanPhone;
+    _activeFarmerName = cleanName;
     _isLoading = true;
     notifyListeners();
 
-    try {
-      // 1. Fetch remote logs from Google Sheets (Farmer_Logs Tab)
-      final sheetLogs = await _sheets.fetchFarmerLogs(phone: phone, name: name);
-      if (sheetLogs.isNotEmpty) {
-        final parsedItems = sheetLogs
-            .map((json) => EvidenceItem.fromJson(json))
-            .toList();
+    List<EvidenceItem> fetchedLogs = [];
 
-        // Replace with latest sheet logs for this farmer
-        _evidenceList.removeWhere((e) => _matchesFarmer(e));
-        _evidenceList.insertAll(0, parsedItems);
-      } else {
-        // If sheet is empty for this farmer, remove any leftover mock items for this phone
-        _evidenceList.removeWhere((e) => _matchesFarmer(e));
+    // 1. Fetch real logs from MongoDB Atlas
+    try {
+      final mongoLogs = await _api.fetchFarmerLogsMongo(cleanPhone);
+      if (mongoLogs.isNotEmpty) {
+        fetchedLogs = mongoLogs.map((json) => EvidenceItem.fromJson(json)).toList();
+        debugPrint("[Evidence Provider] Loaded ${fetchedLogs.length} real logs from MongoDB Atlas");
       }
     } catch (e) {
-      debugPrint("[Evidence Provider] Sheet logs fetch note: $e");
+      debugPrint("[Evidence Provider] MongoDB logs fetch notice: $e");
     }
 
+    // 2. Fallback to Google Sheets if MongoDB returned empty
+    if (fetchedLogs.isEmpty) {
+      try {
+        final sheetLogs = await _sheets.fetchFarmerLogs(phone: cleanPhone, name: cleanName);
+        if (sheetLogs.isNotEmpty) {
+          fetchedLogs = sheetLogs.map((json) => EvidenceItem.fromJson(json)).toList();
+          debugPrint("[Evidence Provider] Loaded ${fetchedLogs.length} logs from Google Sheets");
+        }
+      } catch (e) {
+        debugPrint("[Evidence Provider] Sheet logs fetch notice: $e");
+      }
+    }
+
+    // Strictly set the evidence list for this farmer (no dummy items)
+    _evidenceList = fetchedLogs;
     _isLoading = false;
     notifyListeners();
   }

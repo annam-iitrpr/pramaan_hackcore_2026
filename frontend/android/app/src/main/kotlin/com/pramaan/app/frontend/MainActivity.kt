@@ -164,7 +164,27 @@ class MainActivity : FlutterActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun startHeadlessSpeechRecognition(lang: String) {
+    private fun createOptimalSpeechRecognizer(): SpeechRecognizer {
+        val googleServices = listOf(
+            android.content.ComponentName("com.google.android.googlequicksearchbox", "com.google.android.voicesearch.serviceapi.GoogleRecognitionService"),
+            android.content.ComponentName("com.google.android.as", "com.google.android.apps.miphone.aiai.speech.service.SpeechRecognitionService")
+        )
+        for (comp in googleServices) {
+            try {
+                val serviceIntent = Intent("android.speech.RecognitionService").setComponent(comp)
+                val resolveInfo = packageManager.resolveService(serviceIntent, 0)
+                if (resolveInfo != null) {
+                    Log.d(TAG, "Using recognition service: ${comp.flattenToShortString()}")
+                    return SpeechRecognizer.createSpeechRecognizer(this, comp)
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Error checking component $comp: ${e.message}")
+            }
+        }
+        return SpeechRecognizer.createSpeechRecognizer(this)
+    }
+
+    private fun startHeadlessSpeechRecognition(lang: String, retryStage: Int = 0) {
         mainHandler.post {
             try {
                 if (!SpeechRecognizer.isRecognitionAvailable(this)) {
@@ -175,21 +195,38 @@ class MainActivity : FlutterActivity(), TextToSpeech.OnInitListener {
                 }
 
                 speechRecognizer?.destroy()
-                speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+                speechRecognizer = if (retryStage == 0) createOptimalSpeechRecognizer() else SpeechRecognizer.createSpeechRecognizer(this)
 
                 val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                     putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                    putExtra(RecognizerIntent.EXTRA_LANGUAGE, lang)
-                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, lang)
-                    putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, false)
                     putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
                     putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
                     putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, packageName)
+
+                    when (retryStage) {
+                        0 -> {
+                            // First attempt: use the exact requested language
+                            val cleanLang = lang.ifEmpty { "hi-IN" }
+                            putExtra(RecognizerIntent.EXTRA_LANGUAGE, cleanLang)
+                            putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, cleanLang)
+                        }
+                        1 -> {
+                            // Second attempt: use device default locale
+                            val defaultLocale = Locale.getDefault().toLanguageTag()
+                            Log.d(TAG, "Falling back to device default locale: $defaultLocale")
+                            putExtra(RecognizerIntent.EXTRA_LANGUAGE, defaultLocale)
+                            putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, defaultLocale)
+                        }
+                        else -> {
+                            // Final fallback: freeform speech with no forced language model constraint
+                            Log.d(TAG, "Falling back to unconstrained freeform speech recognition")
+                        }
+                    }
                 }
 
                 speechRecognizer?.setRecognitionListener(object : RecognitionListener {
                     override fun onReadyForSpeech(params: Bundle?) {
-                        Log.d(TAG, "onReadyForSpeech")
+                        Log.d(TAG, "onReadyForSpeech (stage: $retryStage, lang: $lang)")
                         methodChannel?.invokeMethod("onSpeechReady", null)
                     }
 
@@ -210,18 +247,27 @@ class MainActivity : FlutterActivity(), TextToSpeech.OnInitListener {
                     }
 
                     override fun onError(error: Int) {
-                        Log.e(TAG, "Speech recognizer error code: $error")
+                        Log.w(TAG, "Speech recognizer error: $error (stage: $retryStage, lang: $lang)")
+
+                        // Error 11 = SERVER_DISCONNECTED, 12 = LANGUAGE_NOT_SUPPORTED, 13 = LANGUAGE_UNAVAILABLE, 14 = CANNOT_CHECK_SUPPORT
+                        if (retryStage < 2 && (error == 11 || error == 12 || error == 13 || error == 14 || error == 5)) {
+                            Log.i(TAG, "Speech model error $error on stage $retryStage. Seamlessly escalating to fallback stage ${retryStage + 1}...")
+                            startHeadlessSpeechRecognition(lang, retryStage = retryStage + 1)
+                            return
+                        }
+
                         val errorMessage = when (error) {
                             SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
-                            SpeechRecognizer.ERROR_CLIENT -> "Client side error"
+                            SpeechRecognizer.ERROR_CLIENT -> "Client side notice"
                             SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Insufficient permissions"
-                            SpeechRecognizer.ERROR_NETWORK -> "Network error"
+                            SpeechRecognizer.ERROR_NETWORK -> "Network connection unavailable"
                             SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network timeout"
-                            SpeechRecognizer.ERROR_NO_MATCH -> "No speech recognized"
+                            SpeechRecognizer.ERROR_NO_MATCH -> "No speech recognized. Please speak into the mic."
                             SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Recognition service busy"
                             SpeechRecognizer.ERROR_SERVER -> "Server error"
-                            SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech detected"
-                            else -> "Speech error $error"
+                            SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech detected. Please tap mic and speak."
+                            11, 12, 13, 14 -> "Microphone ready. Please speak your field observation."
+                            else -> "Notice ($error)"
                         }
                         methodChannel?.invokeMethod("onSpeechError", errorMessage)
                         pendingResult?.error("SPEECH_ERROR", errorMessage, error)
@@ -256,9 +302,13 @@ class MainActivity : FlutterActivity(), TextToSpeech.OnInitListener {
 
                 speechRecognizer?.startListening(intent)
             } catch (e: Exception) {
-                Log.e(TAG, "Exception starting speech recognition: ${e.message}")
-                pendingResult?.error("UNAVAILABLE", e.message, null)
-                pendingResult = null
+                Log.e(TAG, "Exception in speech recognition: ${e.message}")
+                if (retryStage < 2) {
+                    startHeadlessSpeechRecognition(lang, retryStage = retryStage + 1)
+                } else {
+                    pendingResult?.error("UNAVAILABLE", e.message, null)
+                    pendingResult = null
+                }
             }
         }
     }
