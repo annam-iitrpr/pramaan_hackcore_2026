@@ -225,7 +225,7 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    "✓ 3-Page Audit PDF for $farmerName saved to storage!",
+                    "✓ Official 3-Page Audit PDF for $farmerName saved to storage!",
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
                   ),
                 ),
@@ -252,7 +252,6 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
   }
 
   void _showLogDetailsModal(Map<String, dynamic> log, String lang, String itemKey) {
-    final farmerName = (log['farmer_name'] ?? 'Verified Farmer').toString();
     final village = (log['village'] ?? '').toString();
     final state = (log['state'] ?? '').toString();
     final crop = (log['crop'] ?? log['crop_name'] ?? 'Crop').toString();
@@ -327,15 +326,16 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
                   ),
                   const SizedBox(height: 14),
 
-                  // Farmer Profile
+                  // Verified Agri Log Header (Anonymized for Farmer Security)
                   Row(
                     children: [
-                      CircleAvatar(
+                      const CircleAvatar(
                         radius: 24,
                         backgroundColor: AppColors.primarySurface,
-                        child: Text(
-                          farmerName.isNotEmpty ? farmerName[0] : 'K',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryDark),
+                        child: Icon(
+                          Icons.verified_user_rounded,
+                          color: AppColors.primaryDark,
+                          size: 26,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -344,7 +344,7 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              farmerName,
+                              AppTranslations.tr(lang, "farmer_verified_log", "Verified Farmer Record"),
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                             ),
                             Text(
@@ -764,7 +764,6 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
 
   Widget _buildCommunityLogCard(Map<String, dynamic> log, String lang, int index) {
     final logId = (log['id'] ?? log['log_id'] ?? '').toString();
-    final farmerName = (log['farmer_name'] ?? 'Verified Farmer').toString();
     final village = (log['village'] ?? '').toString();
     final state = (log['state'] ?? '').toString();
     final crop = (log['crop'] ?? log['crop_name'] ?? 'Crop').toString();
@@ -805,17 +804,18 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Farmer Profile & Verified Badge Header
+          // 1. Verified Agri Log & Verified Badge Header (Privacy Protected)
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
             child: Row(
               children: [
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 18,
                   backgroundColor: AppColors.primarySurface,
-                  child: Text(
-                    farmerName.isNotEmpty ? farmerName[0] : 'K',
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDark, fontSize: 14),
+                  child: Icon(
+                    Icons.verified_user_rounded,
+                    color: AppColors.primaryDark,
+                    size: 20,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -827,7 +827,7 @@ class _CommunityLogsScreenState extends State<CommunityLogsScreen> {
                         children: [
                           Flexible(
                             child: Text(
-                              farmerName,
+                              AppTranslations.tr(lang, "farmer_verified_log", "Verified Farmer Record"),
                               style: const TextStyle(
                                 fontSize: 14.5,
                                 fontWeight: FontWeight.bold,
