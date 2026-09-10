@@ -19,10 +19,10 @@ class ChatProvider extends ChangeNotifier {
     _messages.add(ChatMessageModel(
       id: 'msg-01',
       sender: 'pramaan_ai',
-      text: 'Sat Sri Akal / Namaste! I am **Ask Pramaan**, your AI Agronomy & Real-Time Weather Assistant (PAU Ludhiana Standards). How can I assist with your Punjab crop spray windows, wheat yellow rust, or cotton pest management today?',
+      text: 'Namaste / Sat Sri Akal! 🙏 I am Ask Pramaan, your AI Farm & Weather Assistant.\n\nAsk me anything about your crop diseases, weather & spray timing, recommended medicines, or fertilizer dosages!',
       timestamp: DateFormat('hh:mm a').format(DateTime.now()),
-      actionChips: ['Check Punjab Spray Window', 'Ludhiana Weather', 'Wheat Yellow Rust Guide', 'Malwa Whitefly Window'],
-      citations: ['PAU Ludhiana Protocols', 'Pramaan Verified Live Weather'],
+      actionChips: ['Should I spray today?', 'Yellow Rust Treatment', 'Check Weather', 'Fertilizer Advice'],
+      citations: ['Pramaan Verified Field Protocols', 'Live Weather Station'],
     ));
   }
 

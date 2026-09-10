@@ -25,12 +25,14 @@ class _AskPramaanScreenState extends State<AskPramaanScreen> {
   void _send(String text) {
     if (text.trim().isEmpty) return;
     final farmProv = Provider.of<FarmProvider>(context, listen: false);
+    final auth = Provider.of<AuthProvider>(context, listen: false);
     final crop = farmProv.selectedFarm?.activeCrop ?? "Cotton";
+    final lang = auth.selectedLanguage;
 
     Provider.of<ChatProvider>(
       context,
       listen: false,
-    ).sendMessage(text.trim(), crop: crop);
+    ).sendMessage(text.trim(), crop: crop, lang: lang);
     _textController.clear();
     _scrollToBottom();
   }
@@ -161,16 +163,7 @@ class _AskPramaanScreenState extends State<AskPramaanScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                msg.text,
-                                style: TextStyle(
-                                  fontSize: 13.5,
-                                  color: isUser
-                                      ? Colors.white
-                                      : AppColors.textPrimary,
-                                  height: 1.4,
-                                ),
-                              ),
+                              _buildFormattedMessageText(msg.text, isUser),
                               const SizedBox(height: 6),
                               Text(
                                 msg.timestamp,
@@ -358,6 +351,52 @@ class _AskPramaanScreenState extends State<AskPramaanScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFormattedMessageText(String text, bool isUser) {
+    final baseColor = isUser ? Colors.white : AppColors.textPrimary;
+
+    // Convert bullet asterisks or dashes to clean "• "
+    String cleaned = text
+        .replaceAll(RegExp(r'^\s*[\*\-]\s*(\*\*)?', multiLine: true), '• **')
+        .replaceAll(RegExp(r'^\s*[\*\-]\s+', multiLine: true), '• ')
+        .replaceAll('***', '**');
+
+    final lines = cleaned.split('\n');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: lines.map((line) {
+        if (line.trim().isEmpty) {
+          return const SizedBox(height: 6);
+        }
+
+        final spans = <TextSpan>[];
+        final parts = line.split('**');
+
+        for (int i = 0; i < parts.length; i++) {
+          final cleanPart = parts[i].replaceAll('*', '');
+          if (cleanPart.isEmpty) continue;
+          final isBold = i % 2 == 1;
+          spans.add(TextSpan(
+            text: cleanPart,
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
+              color: baseColor,
+              height: 1.45,
+            ),
+          ));
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 2),
+          child: RichText(
+            text: TextSpan(children: spans),
+          ),
+        );
+      }).toList(),
     );
   }
 }
