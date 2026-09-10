@@ -42,6 +42,7 @@ class ApiService {
     Map<String, dynamic> body, {
     int timeoutSec = 15,
   }) async {
+    String? lastServerError;
     for (final host in _orderedHosts) {
       final url = "$host$path";
       try {
@@ -52,11 +53,27 @@ class ApiService {
               body: jsonEncode(body),
             )
             .timeout(Duration(seconds: timeoutSec));
-        if (response.statusCode == 200) {
+        if (response.statusCode >= 200 && response.statusCode < 300) {
           _cachedWorkingHost = host;
           return response;
+        } else {
+          _cachedWorkingHost = host;
+          try {
+            final errJson = jsonDecode(response.body);
+            if (errJson is Map && errJson.containsKey('detail')) {
+              lastServerError = errJson['detail']?.toString();
+            } else if (errJson is Map && errJson.containsKey('message')) {
+              lastServerError = errJson['message']?.toString();
+            }
+          } catch (_) {}
+          if (lastServerError != null && lastServerError.isNotEmpty) {
+            throw Exception(lastServerError);
+          }
+          throw Exception("Server error (${response.statusCode})");
         }
-      } catch (_) {}
+      } catch (e) {
+        if (lastServerError != null) rethrow;
+      }
     }
     throw Exception("Could not connect to backend server on USB/LAN.");
   }
@@ -235,6 +252,55 @@ class ApiService {
       },
       "logs": cachedLogs,
     };
+  }
+
+  Future<Map<String, dynamic>> sendOtp(String phone) async {
+    final cleanPhone = phone.trim();
+    try {
+      final response = await _postWithFallback(
+        "/auth/send-otp",
+        {"phone": cleanPhone},
+        timeoutSec: 10,
+      );
+      final data = jsonDecode(response.body);
+      return data is Map<String, dynamic> ? data : {"success": true, "message": "OTP sent successfully"};
+    } catch (e) {
+      debugPrint("[Auth API] sendOtp error: $e");
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyOtp({
+    required String phone,
+    required String otp,
+    String? name,
+    String? village,
+    String? state,
+    String? crop,
+    double? acres,
+  }) async {
+    final cleanPhone = phone.trim();
+    final cleanOtp = otp.trim();
+    try {
+      final response = await _postWithFallback(
+        "/auth/verify-otp",
+        {
+          "phone": cleanPhone,
+          "otp": cleanOtp,
+          if (name != null && name.isNotEmpty) "name": name,
+          if (village != null && village.isNotEmpty) "village": village,
+          if (state != null && state.isNotEmpty) "state": state,
+          if (crop != null && crop.isNotEmpty) "crop": crop,
+          if (acres != null) "acres": acres,
+        },
+        timeoutSec: 10,
+      );
+      final data = jsonDecode(response.body);
+      return data is Map<String, dynamic> ? data : {"success": true, "message": "Verified successfully"};
+    } catch (e) {
+      debugPrint("[Auth API] verifyOtp error: $e");
+      rethrow;
+    }
   }
 
   Future<Map<String, dynamic>> loginFarmerMongo({

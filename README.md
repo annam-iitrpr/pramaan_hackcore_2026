@@ -24,6 +24,9 @@ Pramaan is a full-stack AgTech platform combining mobile/web field logging, mult
   - Geospatial field map with NDVI stress layer and evidence marker pins.
   - Offline sync center with local caching queue.
   - Continuous learning loop for agronomists to refine AI models.
+- **Twilio Verify OTP Authentication**:
+  - Production-ready 2-step OTP verification with E.164 phone normalization, client-side rate limits, 30s resend timer, and MongoDB Atlas profile syncing.
+  - See [Twilio Verify Setup Guide](docs/TWILIO_VERIFY_SETUP.md) for full configuration details.
 
 ---
 
