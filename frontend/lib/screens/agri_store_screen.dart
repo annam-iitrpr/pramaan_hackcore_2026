@@ -6,7 +6,16 @@ import '../core/localization/app_translations.dart';
 import '../widgets/custom_bottom_nav.dart';
 
 class AgriStoreScreen extends StatefulWidget {
-  const AgriStoreScreen({super.key});
+  final String? initialSearch;
+  final String? initialCategory;
+  final String? initialCrop;
+
+  const AgriStoreScreen({
+    super.key,
+    this.initialSearch,
+    this.initialCategory,
+    this.initialCrop,
+  });
 
   @override
   State<AgriStoreScreen> createState() => _AgriStoreScreenState();
@@ -15,8 +24,57 @@ class AgriStoreScreen extends StatefulWidget {
 class _AgriStoreScreenState extends State<AgriStoreScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = "All";
-  final String _selectedCrop = "All";
+  String _selectedCrop = "All";
   String _searchQuery = "";
+  bool _initializedArgs = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialSearch != null && widget.initialSearch!.isNotEmpty) {
+      _searchController.text = widget.initialSearch!;
+      _searchQuery = widget.initialSearch!;
+    }
+    if (widget.initialCategory != null) {
+      _selectedCategory = widget.initialCategory!;
+    }
+    if (widget.initialCrop != null) {
+      _selectedCrop = widget.initialCrop!;
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initializedArgs) {
+      _initializedArgs = true;
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map<String, dynamic>) {
+        if (args['search'] != null && _searchQuery.isEmpty) {
+          final s = args['search'].toString();
+          _searchController.text = s;
+          setState(() {
+            _searchQuery = s;
+          });
+        }
+        if (args['category'] != null) {
+          setState(() {
+            _selectedCategory = args['category'].toString();
+          });
+        }
+        if (args['crop'] != null) {
+          setState(() {
+            _selectedCrop = args['crop'].toString();
+          });
+        }
+      } else if (args is String && _searchQuery.isEmpty) {
+        _searchController.text = args;
+        setState(() {
+          _searchQuery = args;
+        });
+      }
+    }
+  }
 
   final List<Map<String, dynamic>> _catalogProducts = [
     {

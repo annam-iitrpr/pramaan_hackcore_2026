@@ -11,6 +11,7 @@ import '../core/providers/evidence_provider.dart';
 import '../core/localization/app_translations.dart';
 import '../core/services/api_service.dart';
 import '../widgets/custom_bottom_nav.dart';
+import 'agri_store_screen.dart';
 
 class CropCameraScreen extends StatefulWidget {
   const CropCameraScreen({super.key});
@@ -352,6 +353,97 @@ class _CropCameraScreenState extends State<CropCameraScreen> {
     return 'This will help control the disease and protect your crop.';
   }
 
+  Map<String, String> _getStoreProductForDiagnosis(Map<String, dynamic> res, String lang) {
+    final disease = (res['disease_detected'] ?? '').toString().toLowerCase();
+    final crop = (res['crop_detected'] ?? _selectedCrop).toString().toLowerCase();
+    final chem = (res['recommended_active_ingredient'] ?? '').toString().toLowerCase();
+
+    if (disease.contains('rust') || crop.contains('wheat') || chem.contains('propiconazole') || chem.contains('tilt')) {
+      return {
+        "search": "Tilt",
+        "product_name": "Tilt 25% EC (Propiconazole)",
+        "brand": "Syngenta India Ltd.",
+        "category": "Fungicide",
+        "crop": "Wheat",
+        "price": "₹540",
+        "unit": "250 ml Bottle",
+        "badge": lang == 'hi' ? 'QR सत्यापित' : (lang == 'mr' ? 'QR प्रमाणित' : 'QR Verified'),
+      };
+    }
+    if (disease.contains('sheath blight') || disease.contains('blast') || crop.contains('rice') || crop.contains('paddy') || chem.contains('validamycin')) {
+      return {
+        "search": "Validamycin",
+        "product_name": "Validamycin 3% L",
+        "brand": "Sumitomo Chemical India",
+        "category": "Fungicide",
+        "crop": "Rice",
+        "price": "₹490",
+        "unit": "500 ml Bottle",
+        "badge": lang == 'hi' ? 'QR सत्यापित' : (lang == 'mr' ? 'QR प्रमाणित' : 'QR Verified'),
+      };
+    }
+    if (disease.contains('leaf curl') || disease.contains('thrips') || disease.contains('mite') || crop.contains('chilli') || chem.contains('diafenthiuron') || chem.contains('pegasus')) {
+      return {
+        "search": "Pegasus",
+        "product_name": "Pegasus (Diafenthiuron 50% WP)",
+        "brand": "Syngenta India Ltd.",
+        "category": "Insecticide",
+        "crop": "Chilli",
+        "price": "₹720",
+        "unit": "250 g Pack",
+        "badge": lang == 'hi' ? 'QR सत्यापित' : (lang == 'mr' ? 'QR प्रमाणित' : 'QR Verified'),
+      };
+    }
+    if (disease.contains('whitefly') || disease.contains('bollworm') || crop.contains('cotton') || chem.contains('neem') || chem.contains('pyriproxyfen')) {
+      return {
+        "search": "Bio-Neem",
+        "product_name": "Bio-Neem Power 10,000 PPM",
+        "brand": "Pramaan Eco Bio-Agri",
+        "category": "Organic",
+        "crop": "Cotton",
+        "price": "₹380",
+        "unit": "500 ml Bottle",
+        "badge": lang == 'hi' ? '100% जैविक' : (lang == 'mr' ? '१००% सेंद्रिय' : '100% Organic'),
+      };
+    }
+    if (disease.contains('blight') || crop.contains('tomato') || crop.contains('potato') || chem.contains('trichoderma') || chem.contains('mancozeb')) {
+      return {
+        "search": "Trichoderma",
+        "product_name": "Trichoderma Viride Bio-Fungicide",
+        "brand": "National Bio-Fertilizers",
+        "category": "Organic",
+        "crop": "Tomato",
+        "price": "₹260",
+        "unit": "1 kg Pack",
+        "badge": lang == 'hi' ? '100% जैविक' : (lang == 'mr' ? '१००% सेंद्रिय' : '100% Organic'),
+      };
+    }
+
+    return {
+      "search": "Tilt",
+      "product_name": "Tilt 25% EC (Propiconazole)",
+      "brand": "Syngenta India Ltd.",
+      "category": "Fungicide",
+      "crop": "Wheat",
+      "price": "₹540",
+      "unit": "250 ml Bottle",
+      "badge": lang == 'hi' ? 'QR सत्यापित' : (lang == 'mr' ? 'QR प्रमाणित' : 'QR Verified'),
+    };
+  }
+
+  void _navigateToStoreForProduct(Map<String, String> storeProduct) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AgriStoreScreen(
+          initialSearch: storeProduct['search'],
+          initialCategory: storeProduct['category'],
+          initialCrop: storeProduct['crop'],
+        ),
+      ),
+    );
+  }
+
   // ============================================================
   // MAIN BUILD DISPATCHER
   // ============================================================
@@ -455,6 +547,7 @@ class _CropCameraScreenState extends State<CropCameraScreen> {
     final step2Method = _getStep2Method(res, lang);
     final step3Timing = _getStep3Timing(res, lang);
     final protectNote = _getProtectionNote(res, lang);
+    final storeProduct = _getStoreProductForDiagnosis(res, lang);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -784,6 +877,125 @@ class _CropCameraScreenState extends State<CropCameraScreen> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 8),
+
+                      // Recommended Store Input Card with direct Buy Redirection
+                      Container(
+                        margin: const EdgeInsets.only(left: 6, top: 4, bottom: 6),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFF0FDF4), Color(0xFFECFDF5)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFA7F3D0)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 6,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              alignment: WrapAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF047857),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    lang == 'hi'
+                                        ? 'अनुशंसित दवा (दुकान में)'
+                                        : (lang == 'mr'
+                                            ? 'शिफारस केलेले औषध'
+                                            : (lang == 'pa' ? 'ਸਿਫਾਰਸ਼ ਕੀਤੀ ਦਵਾਈ' : 'Recommended Input')),
+                                    style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: const Color(0xFF86EFAC)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.verified_rounded, size: 12, color: Color(0xFF15803D)),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        storeProduct['badge'] ?? "QR Verified",
+                                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF15803D)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const CircleAvatar(
+                                  radius: 18,
+                                  backgroundColor: Colors.white,
+                                  child: Icon(Icons.shopping_bag_rounded, color: Color(0xFF047857), size: 20),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        storeProduct['product_name']!,
+                                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        "${storeProduct['brand']} • ${storeProduct['price']} (${storeProduct['unit']})",
+                                        style: const TextStyle(fontSize: 11, color: Color(0xFF475569)),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 38,
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF047857),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                ),
+                                icon: const Icon(Icons.storefront_rounded, size: 16),
+                                label: Text(
+                                  lang == 'hi'
+                                      ? 'दुकान से खरीदें • ${storeProduct['price']}'
+                                      : (lang == 'mr'
+                                          ? 'दुकानातून खरेदी करा • ${storeProduct['price']}'
+                                          : (lang == 'pa' ? 'ਦੁਕਾਨ ਤੋਂ ਖਰੀਦੋ • ${storeProduct['price']}' : 'Buy from Store • ${storeProduct['price']}')),
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                ),
+                                onPressed: () => _navigateToStoreForProduct(storeProduct),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(height: 12),
 
                       // Step 2: Application Method
@@ -897,25 +1109,53 @@ class _CropCameraScreenState extends State<CropCameraScreen> {
           const SizedBox(height: 16),
 
           // ----------------------------------------------------
-          // 3. Save in My Journal Button
+          // 3. Action Buttons: Buy from Store & Save in Journal
           // ----------------------------------------------------
           SizedBox(
             width: double.infinity,
-            height: 52,
+            height: 50,
             child: ElevatedButton.icon(
-              onPressed: _saveEvidence,
-              icon: const Icon(Icons.bookmark_add_rounded, size: 22, color: Colors.white),
+              onPressed: () => _navigateToStoreForProduct(storeProduct),
+              icon: const Icon(Icons.shopping_cart_checkout_rounded, size: 20, color: Colors.white),
               label: Text(
-                lang == 'hi' ? 'खाते में सहेजें (Save in Journal)' : (lang == 'mr' ? 'खात्यात जतन करा' : 'Save in My Journal'),
+                lang == 'hi'
+                    ? 'दुकान में दवा देखें व खरीदें (Buy from Store)'
+                    : (lang == 'mr'
+                        ? 'दुकानात औषध पहा व खरेदी करा'
+                        : (lang == 'pa' ? 'ਦੁਕਾਨ ਵਿੱਚ ਦਵਾਈ ਦੇਖੋ ਤੇ ਖਰੀਦੋ' : 'View & Buy Product from Store')),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 15,
+                  fontSize: 14.5,
                   color: Colors.white,
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF047857),
+                backgroundColor: const Color(0xFF059669),
                 elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: _saveEvidence,
+              icon: const Icon(Icons.bookmark_add_rounded, size: 20, color: Color(0xFF047857)),
+              label: Text(
+                lang == 'hi' ? 'खाते में सहेजें (Save in Journal)' : (lang == 'mr' ? 'खात्यात जतन करा' : 'Save in My Journal'),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Color(0xFF047857),
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFF047857), width: 1.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
