@@ -25,14 +25,7 @@ class Settings:
     )
     MONGODB_DB_NAME: str = os.getenv("MONGODB_DB_NAME", "pramaan_db")
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
-
-    # Twilio Verify Settings
-    TWILIO_ACCOUNT_SID: str = os.getenv("TWILIO_ACCOUNT_SID", "")
-    TWILIO_AUTH_TOKEN: str = os.getenv("TWILIO_AUTH_TOKEN", "")
-    TWILIO_VERIFY_SERVICE_SID: str = os.getenv("TWILIO_VERIFY_SERVICE_SID", "")
-
     DATA_DIR: Path = Path(__file__).resolve().parent.parent / "data"
 
 settings = Settings()
 settings.DATA_DIR.mkdir(parents=True, exist_ok=True)
-

@@ -11,8 +11,7 @@ from backend.app.routes import (
     report,
     farm,
     adk_route,
-    farmer_db,
-    auth
+    farmer_db
 )
 from backend.app.database.mongodb import mongo_db
 
@@ -40,8 +39,6 @@ app.add_middleware(
 )
 
 # Include API Router modules
-app.include_router(auth.router, prefix="/api/auth")
-app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth")
 app.include_router(orchestrator.router, prefix=settings.API_V1_STR)
 app.include_router(voice.router, prefix=settings.API_V1_STR)
 app.include_router(vision.router, prefix=settings.API_V1_STR)
