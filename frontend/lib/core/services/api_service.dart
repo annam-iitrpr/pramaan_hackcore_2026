@@ -17,6 +17,7 @@ class ApiService {
 
   final List<String> _backendHosts = [
     "http://127.0.0.1:8000/api/v1",
+    "http://10.40.213.222/api/v1",
     "http://172.26.15.17:8000/api/v1",
     "http://10.0.2.2:8000/api/v1",
     "http://172.19.12.37:8000/api/v1",
@@ -203,7 +204,11 @@ class ApiService {
     };
 
     try {
-      final response = await _postWithFallback("/farmer/auth", payload, timeoutSec: 5);
+      final response = await _postWithFallback(
+        "/farmer/auth",
+        payload,
+        timeoutSec: 5,
+      );
       final data = jsonDecode(response.body);
       if (data['status'] == 'success') {
         if (data['logs'] is List) {
@@ -215,7 +220,9 @@ class ApiService {
         return data;
       }
     } catch (e) {
-      debugPrint("[MongoDB API] Offline notice on farmer login: $e. Using local cache.");
+      debugPrint(
+        "[MongoDB API] Offline notice on farmer login: $e. Using local cache.",
+      );
     }
 
     // Offline Resilience Fallback
@@ -252,7 +259,9 @@ class ApiService {
       village: village ?? "Dindori, Nashik",
       state: state ?? "Maharashtra",
       crop: crop ?? "Wheat",
-      acres: (acres is num) ? acres.toDouble() : double.tryParse(acres?.toString() ?? "5.0") ?? 5.0,
+      acres: (acres is num)
+          ? acres.toDouble()
+          : double.tryParse(acres?.toString() ?? "5.0") ?? 5.0,
     );
   }
 
@@ -260,7 +269,10 @@ class ApiService {
     final cleanPhone = phone.trim();
     try {
       final encodedPhone = Uri.encodeComponent(cleanPhone);
-      final response = await _getWithFallback("/farmer/logs?phone=$encodedPhone", timeoutSec: 4);
+      final response = await _getWithFallback(
+        "/farmer/logs?phone=$encodedPhone",
+        timeoutSec: 4,
+      );
       final data = jsonDecode(response.body);
       if (data['status'] == 'success' && data['logs'] is List) {
         final logs = List<Map<String, dynamic>>.from(data['logs']);
@@ -268,7 +280,9 @@ class ApiService {
         return logs;
       }
     } catch (e) {
-      debugPrint("[MongoDB API] Fetch logs notice (falling back to offline cache): $e");
+      debugPrint(
+        "[MongoDB API] Fetch logs notice (falling back to offline cache): $e",
+      );
     }
 
     // Local offline cache fallback
@@ -277,7 +291,10 @@ class ApiService {
 
   Future<List<Map<String, dynamic>>> fetchCommunityLogsMongo() async {
     try {
-      final response = await _getWithFallback("/farmer/community-feed", timeoutSec: 4);
+      final response = await _getWithFallback(
+        "/farmer/community-feed",
+        timeoutSec: 4,
+      );
       final data = jsonDecode(response.body);
       if (data['status'] == 'success' && data['logs'] is List) {
         final logs = List<Map<String, dynamic>>.from(data['logs']);
@@ -287,7 +304,9 @@ class ApiService {
         return logs;
       }
     } catch (e) {
-      debugPrint("[MongoDB API] Community feed notice (falling back to offline cache): $e");
+      debugPrint(
+        "[MongoDB API] Community feed notice (falling back to offline cache): $e",
+      );
     }
 
     return await OfflineStorageService().getCachedCommunityLogs();
@@ -336,19 +355,29 @@ class ApiService {
     };
 
     // Cache to local farmer logs immediately for instant UI update
-    final currentLogs = await OfflineStorageService().getCachedFarmerLogs(farmerPhone);
+    final currentLogs = await OfflineStorageService().getCachedFarmerLogs(
+      farmerPhone,
+    );
     currentLogs.insert(0, payload);
     await OfflineStorageService().cacheFarmerLogs(farmerPhone, currentLogs);
 
     // Try posting to MongoDB
     try {
-      final response = await _postWithFallback("/farmer/log-entry", payload, timeoutSec: 4);
+      final response = await _postWithFallback(
+        "/farmer/log-entry",
+        payload,
+        timeoutSec: 4,
+      );
       if (response.statusCode == 200) {
-        debugPrint("[MongoDB API] Voice log successfully persisted to MongoDB Atlas!");
+        debugPrint(
+          "[MongoDB API] Voice log successfully persisted to MongoDB Atlas!",
+        );
         return true;
       }
     } catch (e) {
-      debugPrint("[MongoDB API] Notice: offline or unreachable ($e). Queued in offline store.");
+      debugPrint(
+        "[MongoDB API] Notice: offline or unreachable ($e). Queued in offline store.",
+      );
     }
 
     // Save to offline pending queue for later automatic background sync
@@ -360,7 +389,9 @@ class ApiService {
     final pending = await OfflineStorageService().getPendingVoiceLogs();
     if (pending.isEmpty) return 0;
 
-    debugPrint("[MongoDB API] Syncing ${pending.length} pending offline logs to MongoDB Atlas...");
+    debugPrint(
+      "[MongoDB API] Syncing ${pending.length} pending offline logs to MongoDB Atlas...",
+    );
     try {
       final response = await _postWithFallback("/farmer/sync-batch", {
         "logs": pending,
@@ -370,11 +401,15 @@ class ApiService {
         final data = jsonDecode(response.body);
         final syncedCount = data['synced_count'] as int? ?? pending.length;
         await OfflineStorageService().clearPendingLogs();
-        debugPrint("[MongoDB API] Successfully synchronized $syncedCount offline logs with MongoDB Atlas!");
+        debugPrint(
+          "[MongoDB API] Successfully synchronized $syncedCount offline logs with MongoDB Atlas!",
+        );
         return syncedCount;
       }
     } catch (e) {
-      debugPrint("[MongoDB API] Batch sync notice (will retry on next connection window): $e");
+      debugPrint(
+        "[MongoDB API] Batch sync notice (will retry on next connection window): $e",
+      );
     }
 
     return 0;
@@ -1221,58 +1256,85 @@ class ApiService {
       final isMr = lang == 'mr';
       final isPa = lang == 'pa';
 
-      if (lower.contains("spray") || lower.contains("weather") || lower.contains("मौसम") || lower.contains("हवामान") || lower.contains("ਸਪਰੇਅ")) {
+      if (lower.contains("spray") ||
+          lower.contains("weather") ||
+          lower.contains("मौसम") ||
+          lower.contains("हवामान") ||
+          lower.contains("ਸਪਰੇਅ")) {
         if (isHi) {
           return {
-            'reply': "✅ हाँ, आज स्प्रे करने के लिए बहुत अच्छा और सुरक्षित मौसम है!\n\n• 🌤️ मौसम: हवा शांत है और बारिश का कोई खतरा नहीं।\n• ⏰ सही समय: सुबह 06:30 से 10:00 या शाम 04:00 से 07:00 बजे।\n• 💧 मात्रा: 1 एकड़ में पूरा 200 लीटर साफ पानी मिलाकर ही छिड़काव करें।",
+            'reply':
+                "✅ हाँ, आज स्प्रे करने के लिए बहुत अच्छा और सुरक्षित मौसम है!\n\n• 🌤️ मौसम: हवा शांत है और बारिश का कोई खतरा नहीं।\n• ⏰ सही समय: सुबह 06:30 से 10:00 या शाम 04:00 से 07:00 बजे।\n• 💧 मात्रा: 1 एकड़ में पूरा 200 लीटर साफ पानी मिलाकर ही छिड़काव करें।",
             'citations': ["प्रमाण मौसम स्टेशन", "कृषि सलाह"],
-            'action_chips': ["स्प्रे रिकॉर्ड जोड़ें", "मौसम चेक करें", "दवा मात्रा"]
+            'action_chips': [
+              "स्प्रे रिकॉर्ड जोड़ें",
+              "मौसम चेक करें",
+              "दवा मात्रा",
+            ],
           };
         } else if (isMr) {
           return {
-            'reply': "✅ होय, आज फवारणीसाठी अगदी उत्तम आणि सुरक्षित हवामान आहे!\n\n• 🌤️ हवामान: वारा शांत आहे आणि पावसाचा धोका नाही.\n• ⏰ योग्य वेळ: सकाळी ०६:३० ते १०:०० किंवा संध्याकाळी ०४:०० ते ०७:००.\n• 💧 माहिती: प्रति एकर २०० लिटर स्वच्छ पाण्यात औषध मिसळून फवारा.",
+            'reply':
+                "✅ होय, आज फवारणीसाठी अगदी उत्तम आणि सुरक्षित हवामान आहे!\n\n• 🌤️ हवामान: वारा शांत आहे आणि पावसाचा धोका नाही.\n• ⏰ योग्य वेळ: सकाळी ०६:३० ते १०:०० किंवा संध्याकाळी ०४:०० ते ०७:००.\n• 💧 माहिती: प्रति एकर २०० लिटर स्वच्छ पाण्यात औषध मिसळून फवारा.",
             'citations': ["प्रमाण हवामान केंद्र", "कृषी सल्ला"],
-            'action_chips': ["फवारणी नोंद करा", "हवामान तपासा", "योग्य औषध"]
+            'action_chips': ["फवारणी नोंद करा", "हवामान तपासा", "योग्य औषध"],
           };
         } else if (isPa) {
           return {
-            'reply': "✅ ਹਾਂ ਜੀ, ਅੱਜ ਸਪਰੇਅ ਕਰਨ ਲਈ ਬਿਲਕੁਲ ਸਹੀ ਤੇ ਸਾਫ਼ ਮੌਸਮ ਹੈ!\n\n• 🌤️ ਮੌਸਮ: ਹਵਾ ਸ਼ਾਂਤ ਹੈ ਅਤੇ ਮੀਂਹ ਦਾ ਕੋਈ ਖ਼ਤਰਾ ਨਹੀਂ।\n• ⏰ ਸਹੀ ਸਮਾਂ: ਸਵੇਰੇ 06:30 ਤੋਂ 10:00 ਵਜੇ ਜਾਂ ਸ਼ਾਮ 04:00 ਤੋਂ 07:00 ਵਜੇ।\n• 💧 ਨੁਕਤਾ: 1 ਏਕੜ ਵਿੱਚ ਪੂਰਾ 200 ਲੀਟਰ ਸਾਫ਼ ਪਾਣੀ ਵਰਤੋ।",
+            'reply':
+                "✅ ਹਾਂ ਜੀ, ਅੱਜ ਸਪਰੇਅ ਕਰਨ ਲਈ ਬਿਲਕੁਲ ਸਹੀ ਤੇ ਸਾਫ਼ ਮੌਸਮ ਹੈ!\n\n• 🌤️ ਮੌਸਮ: ਹਵਾ ਸ਼ਾਂਤ ਹੈ ਅਤੇ ਮੀਂਹ ਦਾ ਕੋਈ ਖ਼ਤਰਾ ਨਹੀਂ।\n• ⏰ ਸਹੀ ਸਮਾਂ: ਸਵੇਰੇ 06:30 ਤੋਂ 10:00 ਵਜੇ ਜਾਂ ਸ਼ਾਮ 04:00 ਤੋਂ 07:00 ਵਜੇ।\n• 💧 ਨੁਕਤਾ: 1 ਏਕੜ ਵਿੱਚ ਪੂਰਾ 200 ਲੀਟਰ ਸਾਫ਼ ਪਾਣੀ ਵਰਤੋ।",
             'citations': ["ਪ੍ਰਮਾਣ ਮੌਸਮ ਸਟੇਸ਼ਨ", "ਪੀਏਯੂ ਸਲਾਹ"],
-            'action_chips': ["ਸਪਰੇਅ ਰਿਕਾਰਡ ਕਰੋ", "ਮੌਸਮ ਚੈੱਕ ਕਰੋ", "ਦਵਾਈ ਮਾਤਰਾ"]
+            'action_chips': ["ਸਪਰੇਅ ਰਿਕਾਰਡ ਕਰੋ", "ਮੌਸਮ ਚੈੱਕ ਕਰੋ", "ਦਵਾਈ ਮਾਤਰਾ"],
           };
         } else {
           return {
-            'reply': "✅ Yes, today is a great and safe day for spraying!\n\n• 🌤️ Weather: Calm wind with zero rain wash-off risk.\n• ⏰ Best Window: Morning (06:30 – 10:00 AM) or evening (04:30 – 07:00 PM).\n• 💧 Tip: Use 200 Litres of clean water per acre with flat-fan nozzles.",
+            'reply':
+                "✅ Yes, today is a great and safe day for spraying!\n\n• 🌤️ Weather: Calm wind with zero rain wash-off risk.\n• ⏰ Best Window: Morning (06:30 – 10:00 AM) or evening (04:30 – 07:00 PM).\n• 💧 Tip: Use 200 Litres of clean water per acre with flat-fan nozzles.",
             'citations': ["Pramaan Verified Microclimate", "Field Protocols"],
-            'action_chips': ["Log Spray Record", "Live Weather Forecast", "Check Dosage"]
+            'action_chips': [
+              "Log Spray Record",
+              "Live Weather Forecast",
+              "Check Dosage",
+            ],
           };
         }
       }
 
       if (isHi) {
         return {
-          'reply': "🌾 $crop फसल एवं रोग नियंत्रण सलाह:\n\n• 🧪 दवा प्रयोग: सिफारिश की गई मात्रा (1.5–2 मि.ली. प्रति लीटर पानी) में ही इस्तेमाल करें।\n• ⏰ समय: सुबह शांत हवा में छिड़काव करने से पूरा असर मिलता है।\n• 🌿 जैविक विकल्प: नीम का तेल 10,000 PPM का प्रयोग करें।",
+          'reply':
+              "🌾 $crop फसल एवं रोग नियंत्रण सलाह:\n\n• 🧪 दवा प्रयोग: सिफारिश की गई मात्रा (1.5–2 मि.ली. प्रति लीटर पानी) में ही इस्तेमाल करें।\n• ⏰ समय: सुबह शांत हवा में छिड़काव करने से पूरा असर मिलता है।\n• 🌿 जैविक विकल्प: नीम का तेल 10,000 PPM का प्रयोग करें।",
           'citations': ["कृषि प्रोटोकॉल", "प्रमाण गाइड"],
-          'action_chips': ["मौसम चेक करें", "दवा और खुराक", "कीट इलाज"]
+          'action_chips': ["मौसम चेक करें", "दवा और खुराक", "कीट इलाज"],
         };
       } else if (isMr) {
         return {
-          'reply': "🌾 $crop पीक व रोग व्यवस्थापन सल्ला:\n\n• 🧪 औषध प्रमाण: नेहमी शिफारस केलेले प्रमाण (१-२ मिली प्रति लिटर पाणी) वापरावे.\n• ⏰ वेळ: सकाळी किंवा संध्याकाळी शांत वातावरणात फवारणी करावी.\n• 🌿 सेंद्रिय उपाय: बायो-नीम अर्क आणि जैविक खतांचा वापर करा.",
+          'reply':
+              "🌾 $crop पीक व रोग व्यवस्थापन सल्ला:\n\n• 🧪 औषध प्रमाण: नेहमी शिफारस केलेले प्रमाण (१-२ मिली प्रति लिटर पाणी) वापरावे.\n• ⏰ वेळ: सकाळी किंवा संध्याकाळी शांत वातावरणात फवारणी करावी.\n• 🌿 सेंद्रिय उपाय: बायो-नीम अर्क आणि जैविक खतांचा वापर करा.",
           'citations': ["कृषी मार्गदर्शक", "प्रमाण सल्ला"],
-          'action_chips': ["हवामान तपासा", "फवारणी नोंदवा", "कृषी दुकान"]
+          'action_chips': ["हवामान तपासा", "फवारणी नोंदवा", "कृषी दुकान"],
         };
       } else if (isPa) {
         return {
-          'reply': "🌾 $crop ਫ਼ਸਲ ਸੁਰੱਖਿਆ ਸਲਾਹ:\n\n• 🧪 ਦਵਾਈ ਮਾਤਰਾ: ਹਮੇਸ਼ਾ ਸਿਫ਼ਾਰਸ਼ ਅਨੁਸਾਰ 1-2 ਮਿ.ਲੀ. ਪ੍ਰਤੀ ਲੀਟਰ ਪਾਣੀ ਵਿੱਚ ਵਰਤੋ।\n• ⏰ ਸਮਾਂ: ਸਵੇਰੇ ਜਲਦੀ ਜਾਂ ਸ਼ਾਮ ਨੂੰ ਸਪਰੇਅ ਕਰਨ ਨਾਲ ਪੂਰਾ ਅਸਰ ਹੁੰਦਾ ਹੈ।\n• 🌿 ਜੈਵਿਕ ਹੱਲ: ਨਿੰਮ ਦਾ ਤੇਲ ਤੇ ਦੇਸੀ ਖਾਦ ਵਰਤੋ।",
+          'reply':
+              "🌾 $crop ਫ਼ਸਲ ਸੁਰੱਖਿਆ ਸਲਾਹ:\n\n• 🧪 ਦਵਾਈ ਮਾਤਰਾ: ਹਮੇਸ਼ਾ ਸਿਫ਼ਾਰਸ਼ ਅਨੁਸਾਰ 1-2 ਮਿ.ਲੀ. ਪ੍ਰਤੀ ਲੀਟਰ ਪਾਣੀ ਵਿੱਚ ਵਰਤੋ।\n• ⏰ ਸਮਾਂ: ਸਵੇਰੇ ਜਲਦੀ ਜਾਂ ਸ਼ਾਮ ਨੂੰ ਸਪਰੇਅ ਕਰਨ ਨਾਲ ਪੂਰਾ ਅਸਰ ਹੁੰਦਾ ਹੈ।\n• 🌿 ਜੈਵਿਕ ਹੱਲ: ਨਿੰਮ ਦਾ ਤੇਲ ਤੇ ਦੇਸੀ ਖਾਦ ਵਰਤੋ।",
           'citations': ["ਪੀਏਯੂ ਪ੍ਰੋਟੋਕੋਲ", "ਪ੍ਰਮਾਣ ਗਾਈਡ"],
-          'action_chips': ["ਮੌਸਮ ਚੈੱਕ ਕਰੋ", "ਸਪਰੇਅ ਦਰਜ ਕਰੋ", "ਸਟੋਰ ਵੇਖੋ"]
+          'action_chips': ["ਮੌਸਮ ਚੈੱਕ ਕਰੋ", "ਸਪਰੇਅ ਦਰਜ ਕਰੋ", "ਸਟੋਰ ਵੇਖੋ"],
         };
       }
 
       return {
-        'reply': "🌾 Crop Guidance for $crop:\n\n• 🧪 Application Rate: Mix 1.5 – 2.0 ml/L in 200 Litres clean water per acre.\n• ⏰ Optimal Timing: Early morning or evening foliar window ensures high absorption.\n• 🌿 Eco-Friendly: Alternate chemical sprays with botanical Bio-Neem extract.",
-        'citations': ["PAU Ludhiana Agronomy Protocols", "Pramaan Verified Field Protocols"],
-        'action_chips': ["Check Weather", "Log Spray Activity", "Visit Agri Store"]
+        'reply':
+            "🌾 Crop Guidance for $crop:\n\n• 🧪 Application Rate: Mix 1.5 – 2.0 ml/L in 200 Litres clean water per acre.\n• ⏰ Optimal Timing: Early morning or evening foliar window ensures high absorption.\n• 🌿 Eco-Friendly: Alternate chemical sprays with botanical Bio-Neem extract.",
+        'citations': [
+          "PAU Ludhiana Agronomy Protocols",
+          "Pramaan Verified Field Protocols",
+        ],
+        'action_chips': [
+          "Check Weather",
+          "Log Spray Activity",
+          "Visit Agri Store",
+        ],
       };
     }
   }
